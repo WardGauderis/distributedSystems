@@ -14,9 +14,4 @@ def create_app() -> Flask:
 	app = Flask(__name__)
 	app.config.from_object(Config)
 	db.init_app(app)
-
-	@app.shell_context_processor
-	def ctx():
-		return {'app': app, 'db': db}
-
 	return app

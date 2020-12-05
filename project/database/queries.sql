@@ -64,13 +64,34 @@ group by clean_sheets.id
 order by sum(clean_sheets.count) desc
 limit 1;
 
--- played against TODO vroeger
+-- played against
 select count(*)
 from match m
-where (m.home_team_id = 1 and m.away_team_id = 2
-    or m.home_team_id = 2 and m.away_team_id = 1);
+where (m.home_team_id = 33 and m.away_team_id = 67
+    or m.home_team_id = 67 and m.away_team_id = 33)
+  and (date < (current_date at time zone 'CET')::date
+    or time < (current_time at time zone 'CET')::time)
+  and (status is null);
 
-select * from match;
+-- gewonnen
+select count(*)
+from match m
+where (m.home_team_id = 33 and m.away_team_id = 67 and m.goals_home_team > m.goals_away_team
+    or m.home_team_id = 67 and m.away_team_id = 33 and m.goals_home_team < m.goals_away_team)
+  and (date < (current_date at time zone 'CET')::date
+    or time < (current_time at time zone 'CET')::time)
+  and (status is null);
 
+-- al gespeeld
+select *
+from match
+where (date <= (current_date at time zone 'CET')::date
+    or time < (current_time at time zone 'CET')::time)
+  and (status is null)
+order by date desc;
 
+-- select to_date(concat(date_part('year', date), '-', '08-29'), 'YYYY-MM-DD') + matchweek * 7
+-- from match
+-- where date = to_date('2018-09-05', 'YYYY-MM-DD')
+--   and home_team_id = 33;
 

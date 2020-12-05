@@ -27,7 +27,5 @@ def recreate_db():
 	matches.to_sql('match', db.engine, if_exists='append', index=False)
 	db.session.commit()
 
-
-
 if __name__ == '__main__':
 	cli()
