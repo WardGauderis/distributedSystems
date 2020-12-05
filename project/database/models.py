@@ -20,7 +20,7 @@ class Team(db.Model):
 
 class Division(db.Model):
 	id = db.Column(db.Integer(), db.Sequence('division_id_seq', start=7, increment=1), primary_key=True)
-	name = db.Column(db.String(64), nullable=False, unique='True')
+	name = db.Column(db.String(64), nullable=False, unique=True)
 
 
 class Match(db.Model):
