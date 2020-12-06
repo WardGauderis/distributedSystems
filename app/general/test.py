@@ -1,0 +1,2 @@
+def hopla():
+	print('ok')

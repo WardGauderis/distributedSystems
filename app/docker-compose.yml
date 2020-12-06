@@ -7,6 +7,11 @@ services:
       context: nginx
     ports:
       - 80:80
+    depends_on:
+      - auth
+      - crud
+      - stats
+      - frontend
   database:
     image: database
     build:
@@ -23,9 +28,11 @@ services:
       - FLASK_ENV=development
       - DATABASE_URI=postgres://postgres:postgres@database
     volumes:
-      - './auth:/usr/src/app/'
+      - './auth:/usr/src/app/service'
     expose:
       - 5000
+    depends_on:
+      - database
   crud:
     image: general
     build:
@@ -34,9 +41,11 @@ services:
       - FLASK_ENV=development
       - DATABASE_URI=postgres://postgres:postgres@database
     volumes:
-      - './crud:/usr/src/app'
+      - './crud:/usr/src/app/service'
     expose:
       - 5000
+    depends_on:
+      - database
   stats:
     image: general
     build:
@@ -45,9 +54,11 @@ services:
       - FLASK_ENV=development
       - DATABASE_URI=postgres://postgres:postgres@database
     volumes:
-      - './stats:/usr/src/app'
+      - './stats:/usr/src/app/service'
     expose:
       - 5000
+    depends_on:
+      - database
   frontend:
     image: general
     build:
@@ -56,6 +67,10 @@ services:
       - FLASK_ENV=development
       - DATABASE_URI=postgres://postgres:postgres@database
     volumes:
-      - './frontend:/usr/src/app'
+      - './frontend:/usr/src/app/service'
     expose:
       - 5000
+    depends_on:
+      - auth
+      - crud
+      - stats
