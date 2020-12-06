@@ -28,8 +28,8 @@ services:
       - FLASK_ENV=development
       - DATABASE_URI=postgres://postgres:postgres@database
     volumes:
-      - './flask/auth:/usr/src/app/service'
-      - './flask/general:/usr/src/app/general'
+      - './app/auth:/usr/src/app/service'
+      - './app/general:/usr/src/app/general'
     expose:
       - 5000
     depends_on:
@@ -42,8 +42,8 @@ services:
       - FLASK_ENV=development
       - DATABASE_URI=postgres://postgres:postgres@database
     volumes:
-      - './flask/crud:/usr/src/app/service'
-      - './flask/general:/usr/src/app/general'
+      - './app/crud:/usr/src/app/service'
+      - './app/general:/usr/src/app/general'
     expose:
       - 5000
     depends_on:
@@ -56,8 +56,8 @@ services:
       - FLASK_ENV=development
       - DATABASE_URI=postgres://postgres:postgres@database
     volumes:
-      - './flask/stats:/usr/src/app/service'
-      - './flask/general:/usr/src/app/general'
+      - './app/stats:/usr/src/app/service'
+      - './app/general:/usr/src/app/general'
     expose:
       - 5000
     depends_on:
@@ -69,8 +69,8 @@ services:
     environment:
       - FLASK_ENV=development
     volumes:
-      - './flask/frontend:/usr/src/app/service'
-      - './flask/general:/usr/src/app/general'
+      - './app/frontend:/usr/src/app/service'
+      - './app/general:/usr/src/app/general'
     expose:
       - 5000
     depends_on:
