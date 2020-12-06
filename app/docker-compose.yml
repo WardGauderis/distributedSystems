@@ -9,9 +9,9 @@ services:
       - 80:80
     depends_on:
       - auth
-      - crud
-      - stats
-      - frontend
+  #      - crud
+  #      - stats
+  #      - frontend
   database:
     image: database
     build:
@@ -21,56 +21,57 @@ services:
     expose:
       - 5432
   auth:
-    image: general
+    image: flask
     build:
-      context: general
+      context: flask/deployment
     environment:
       - FLASK_ENV=development
       - DATABASE_URI=postgres://postgres:postgres@database
     volumes:
-      - './auth:/usr/src/app/service'
+      - './flask/auth:/usr/src/app/service'
+      - './flask/general:/usr/src/app/general'
     expose:
       - 5000
     depends_on:
       - database
-  crud:
-    image: general
-    build:
-      context: general
-    environment:
-      - FLASK_ENV=development
-      - DATABASE_URI=postgres://postgres:postgres@database
-    volumes:
-      - './crud:/usr/src/app/service'
-    expose:
-      - 5000
-    depends_on:
-      - database
-  stats:
-    image: general
-    build:
-      context: general
-    environment:
-      - FLASK_ENV=development
-      - DATABASE_URI=postgres://postgres:postgres@database
-    volumes:
-      - './stats:/usr/src/app/service'
-    expose:
-      - 5000
-    depends_on:
-      - database
-  frontend:
-    image: general
-    build:
-      context: general
-    environment:
-      - FLASK_ENV=development
-      - DATABASE_URI=postgres://postgres:postgres@database
-    volumes:
-      - './frontend:/usr/src/app/service'
-    expose:
-      - 5000
-    depends_on:
-      - auth
-      - crud
-      - stats
+#  crud:
+#    image: flask
+#    build:
+#      context: flask
+#    environment:
+#      - FLASK_ENV=development
+#      - DATABASE_URI=postgres://postgres:postgres@database
+#    volumes:
+#      - './crud:/usr/src/app/service'
+#    expose:
+#      - 5000
+#    depends_on:
+#      - database
+#  stats:
+#    image: flask
+#    build:
+#      context: flask
+#    environment:
+#      - FLASK_ENV=development
+#      - DATABASE_URI=postgres://postgres:postgres@database
+#    volumes:
+#      - './stats:/usr/src/app/service'
+#    expose:
+#      - 5000
+#    depends_on:
+#      - database
+#  frontend:
+#    image: flask
+#    build:
+#      context: flask
+#    environment:
+#      - FLASK_ENV=development
+#      - DATABASE_URI=postgres://postgres:postgres@database
+#    volumes:
+#      - './frontend:/usr/src/app/service'
+#    expose:
+#      - 5000
+#    depends_on:
+#      - auth
+#      - crud
+#      - stats
