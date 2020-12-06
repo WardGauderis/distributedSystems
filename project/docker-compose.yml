@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx
+    build:
+      context: nginx
+    ports:
+      - 80:80
+    depends_on:
+      - auth
+  #      - crud
+  #      - stats
+  #      - frontend
+  database:
+    image: database
+    build:
+      context: database
+    environment:
+      - POSTGRES_PASSWORD=postgres
+    expose:
+      - 5432
+  auth:
+    image: flask
+    build:
+      context: app/deployment
+    environment:
+      - FLASK_ENV=development
+      - DATABASE_URI=postgres://postgres:postgres@database
+    volumes:
+      - './flask/auth:/usr/src/app/service'
+      - './flask/general:/usr/src/app/general'
+    expose:
+      - 5000
+    depends_on:
+      - database
+  crud:
+    image: flask
+    build:
+      context: app/deployment
+    environment:
+      - FLASK_ENV=development
+      - DATABASE_URI=postgres://postgres:postgres@database
+    volumes:
+      - './flask/crud:/usr/src/app/service'
+      - './flask/general:/usr/src/app/general'
+    expose:
+      - 5000
+    depends_on:
+      - database
+  stats:
+    image: flask
+    build:
+      context: app/deployment
+    environment:
+      - FLASK_ENV=development
+      - DATABASE_URI=postgres://postgres:postgres@database
+    volumes:
+      - './flask/stats:/usr/src/app/service'
+      - './flask/general:/usr/src/app/general'
+    expose:
+      - 5000
+    depends_on:
+      - database
+  frontend:
+    image: flask
+    build:
+      context: app/deployment
+    environment:
+      - FLASK_ENV=development
+    volumes:
+      - './flask/frontend:/usr/src/app/service'
+      - './flask/general:/usr/src/app/general'
+    expose:
+      - 5000
+    depends_on:
+      - auth
+      - crud
+      - stats
