@@ -1,6 +1,7 @@
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
 from os import environ
+
+from flask import Flask, jsonify
+from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
@@ -15,3 +16,15 @@ def create_app() -> Flask:
 	app.config.from_object(Config)
 	db.init_app(app)
 	return app
+
+
+app = create_app()
+
+
+@app.route('/', methods=['GET'])
+def temp():
+	return "stats"
+
+
+if __name__ == '__main__':
+	app.run(host='0.0.0.0')

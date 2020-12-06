@@ -6,7 +6,6 @@ import pandas
 app = create_app()
 cli = FlaskGroup(create_app=create_app)
 
-
 @cli.command()
 def recreate_db():
 	db.drop_all()

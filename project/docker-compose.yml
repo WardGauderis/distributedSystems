@@ -1,8 +1,59 @@
 version: '3.8'
 
 services:
+  nginx:
+    build:
+      context: nginx
+    ports:
+      - 80:80
   database:
     build:
       context: database
     environment:
       - POSTGRES_PASSWORD=postgres
+    expose:
+      - 5432
+  auth:
+    image: flask
+    build:
+      context: .
+    environment:
+      - FLASK_ENV=development
+      - DATABASE_URI=postgres://postgres:postgres@database
+    volumes:
+      - './auth:/usr/src/app'
+    expose:
+      - 5000
+  crud:
+    image: flask
+    build:
+      context: .
+    environment:
+      - FLASK_ENV=development
+      - DATABASE_URI=postgres://postgres:postgres@database
+    volumes:
+      - './crud:/usr/src/app'
+    expose:
+      - 5000
+  stats:
+    image: flask
+    build:
+      context: .
+    environment:
+      - FLASK_ENV=development
+      - DATABASE_URI=postgres://postgres:postgres@database
+    volumes:
+      - './stats:/usr/src/app'
+    expose:
+      - 5000
+  frontend:
+    image: flask
+    build:
+      context: .
+    environment:
+      - FLASK_ENV=development
+      - DATABASE_URI=postgres://postgres:postgres@database
+    volumes:
+      - './frontend:/usr/src/app'
+    expose:
+      - 5000
