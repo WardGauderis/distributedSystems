@@ -1,6 +1,6 @@
 from os import environ
 
-from flask import Flask, jsonify
+from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
@@ -15,16 +15,12 @@ def create_app() -> Flask:
 	app = Flask(__name__)
 	app.config.from_object(Config)
 	db.init_app(app)
+	from auth import bp
+	app.register_blueprint(bp)
 	return app
 
 
 app = create_app()
-
-
-@app.route('/', methods=['GET'])
-def temp():
-	return "auth"
-
 
 if __name__ == '__main__':
 	app.run(host='0.0.0.0')

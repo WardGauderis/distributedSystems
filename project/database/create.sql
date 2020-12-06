@@ -6,20 +6,21 @@ CREATE TYPE public.match_status AS ENUM (
     'Postponed',
     'Canceled',
     'Forfait'
-);
+    );
 
 
 --
 -- Name: club; Type: TABLE; Schema: public; Owner: ward
 --
 
-CREATE TABLE public.club (
-    stam_number integer NOT NULL,
-    name character varying(64) NOT NULL,
-    address character varying(128) NOT NULL,
-    zip_code integer NOT NULL,
-    city character varying(64) NOT NULL,
-    website character varying(128)
+CREATE TABLE public.club
+(
+    stam_number integer                NOT NULL,
+    name        character varying(64)  NOT NULL,
+    address     character varying(128) NOT NULL,
+    zip_code    integer                NOT NULL,
+    city        character varying(64)  NOT NULL,
+    website     character varying(128)
 );
 
 
@@ -39,8 +40,9 @@ CREATE SEQUENCE public.club_stam_number_seq
 -- Name: division; Type: TABLE; Schema: public; Owner: ward
 --
 
-CREATE TABLE public.division (
-    id integer NOT NULL,
+CREATE TABLE public.division
+(
+    id   integer               NOT NULL,
     name character varying(64) NOT NULL
 );
 
@@ -61,18 +63,19 @@ CREATE SEQUENCE public.division_id_seq
 -- Name: match; Type: TABLE; Schema: public; Owner: ward
 --
 
-CREATE TABLE public.match (
-    id integer NOT NULL,
-    division_id integer NOT NULL,
-    matchweek integer NOT NULL,
-    date date NOT NULL,
-    "time" time without time zone NOT NULL,
-    home_team_id integer NOT NULL,
-    away_team_id integer NOT NULL,
+CREATE TABLE public.match
+(
+    id              integer                NOT NULL,
+    division_id     integer                NOT NULL,
+    matchweek       integer                NOT NULL,
+    date            date                   NOT NULL,
+    "time"          time without time zone NOT NULL,
+    home_team_id    integer                NOT NULL,
+    away_team_id    integer                NOT NULL,
     goals_home_team integer,
     goals_away_team integer,
-    status public.match_status,
-    referee_id integer,
+    status          public.match_status,
+    referee_id      integer,
     CONSTRAINT match_check CHECK ((home_team_id <> away_team_id)),
     CONSTRAINT match_check1 CHECK (((goals_home_team >= 0) AND (goals_away_team >= 0))),
     CONSTRAINT match_matchweek_check CHECK ((matchweek > 0))
@@ -103,16 +106,17 @@ ALTER SEQUENCE public.match_id_seq OWNED BY public.match.id;
 -- Name: referee; Type: TABLE; Schema: public; Owner: ward
 --
 
-CREATE TABLE public.referee (
-    id integer NOT NULL,
-    first_name character varying(64) NOT NULL,
-    last_name character varying(64) NOT NULL,
-    address character varying(128) NOT NULL,
-    zip_code integer NOT NULL,
-    city character varying(64) NOT NULL,
-    phone_number character varying(64) NOT NULL,
-    email character varying(128) NOT NULL,
-    date_of_birth date NOT NULL
+CREATE TABLE public.referee
+(
+    id            integer                NOT NULL,
+    first_name    character varying(64)  NOT NULL,
+    last_name     character varying(64)  NOT NULL,
+    address       character varying(128) NOT NULL,
+    zip_code      integer                NOT NULL,
+    city          character varying(64)  NOT NULL,
+    phone_number  character varying(64)  NOT NULL,
+    email         character varying(128) NOT NULL,
+    date_of_birth date                   NOT NULL
 );
 
 
@@ -152,11 +156,12 @@ CREATE SEQUENCE public.seq_reg_id
 -- Name: team; Type: TABLE; Schema: public; Owner: ward
 --
 
-CREATE TABLE public.team (
-    id integer NOT NULL,
-    stam_number integer NOT NULL,
-    suffix character varying(32),
-    colors character varying(128) NOT NULL
+CREATE TABLE public.team
+(
+    id          integer                NOT NULL,
+    stam_number integer                NOT NULL,
+    suffix      character varying(32),
+    colors      character varying(128) NOT NULL
 );
 
 
@@ -176,14 +181,15 @@ CREATE SEQUENCE public.team_id_seq
 -- Name: user; Type: TABLE; Schema: public; Owner: ward
 --
 
-CREATE TABLE public."user" (
-    id integer NOT NULL,
-    username character varying(64) NOT NULL,
-    password_hash character varying(128) NOT NULL,
-    email character varying(128) NOT NULL,
-    team_id integer,
-    is_admin boolean NOT NULL,
-    is_super_admin boolean NOT NULL
+CREATE TABLE public."user"
+(
+    id             integer                NOT NULL,
+    username       character varying(64)  NOT NULL,
+    password_hash  character varying(128) NOT NULL,
+    email          character varying(128) NOT NULL,
+    team_id        integer,
+    is_admin       boolean                NOT NULL,
+    is_super_admin boolean                NOT NULL
 );
 
 
@@ -211,21 +217,24 @@ ALTER SEQUENCE public.user_id_seq OWNED BY public."user".id;
 -- Name: match id; Type: DEFAULT; Schema: public; Owner: ward
 --
 
-ALTER TABLE ONLY public.match ALTER COLUMN id SET DEFAULT nextval('public.match_id_seq'::regclass);
+ALTER TABLE ONLY public.match
+    ALTER COLUMN id SET DEFAULT nextval('public.match_id_seq'::regclass);
 
 
 --
 -- Name: referee id; Type: DEFAULT; Schema: public; Owner: ward
 --
 
-ALTER TABLE ONLY public.referee ALTER COLUMN id SET DEFAULT nextval('public.referee_id_seq'::regclass);
+ALTER TABLE ONLY public.referee
+    ALTER COLUMN id SET DEFAULT nextval('public.referee_id_seq'::regclass);
 
 
 --
 -- Name: user id; Type: DEFAULT; Schema: public; Owner: ward
 --
 
-ALTER TABLE ONLY public."user" ALTER COLUMN id SET DEFAULT nextval('public.user_id_seq'::regclass);
+ALTER TABLE ONLY public."user"
+    ALTER COLUMN id SET DEFAULT nextval('public.user_id_seq'::regclass);
 
 
 --
@@ -313,7 +322,8 @@ COPY public.division (id, name) FROM stdin;
 -- Data for Name: match; Type: TABLE DATA; Schema: public; Owner: ward
 --
 
-COPY public.match (id, division_id, matchweek, date, "time", home_team_id, away_team_id, goals_home_team, goals_away_team, status, referee_id) FROM stdin;
+COPY public.match (id, division_id, matchweek, date, "time", home_team_id, away_team_id, goals_home_team,
+                   goals_away_team, status, referee_id) FROM stdin;
 1	1	1	2018-09-05	14:30:00	33	67	0	0	\N	\N
 2	1	1	2018-09-05	15:00:00	17	52	0	0	\N	\N
 3	1	1	2018-09-05	14:30:00	16	49	0	0	\N	\N
@@ -2913,7 +2923,10 @@ ALTER TABLE ONLY public.match
 
 ALTER TABLE ONLY public.match
     ADD CONSTRAINT match_referee_id_date_key UNIQUE (referee_id, date);
-
+ALTER TABLE ONLY public.match
+    ADD CONSTRAINT match_home_team_id_date_key UNIQUE (home_team_id, date);
+ALTER TABLE ONLY public.match
+    ADD CONSTRAINT match_away_team_id_date_key UNIQUE (away_team_id, date);
 
 --
 -- Name: referee referee_first_name_last_name_date_of_birth_key; Type: CONSTRAINT; Schema: public; Owner: ward
@@ -2968,7 +2981,7 @@ ALTER TABLE ONLY public."user"
 --
 
 ALTER TABLE ONLY public.match
-    ADD CONSTRAINT match_away_team_id_fkey FOREIGN KEY (away_team_id) REFERENCES public.team(id) ON DELETE CASCADE;
+    ADD CONSTRAINT match_away_team_id_fkey FOREIGN KEY (away_team_id) REFERENCES public.team (id) ON DELETE CASCADE;
 
 
 --
@@ -2976,7 +2989,7 @@ ALTER TABLE ONLY public.match
 --
 
 ALTER TABLE ONLY public.match
-    ADD CONSTRAINT match_division_id_fkey FOREIGN KEY (division_id) REFERENCES public.division(id) ON DELETE CASCADE;
+    ADD CONSTRAINT match_division_id_fkey FOREIGN KEY (division_id) REFERENCES public.division (id) ON DELETE CASCADE;
 
 
 --
@@ -2984,7 +2997,7 @@ ALTER TABLE ONLY public.match
 --
 
 ALTER TABLE ONLY public.match
-    ADD CONSTRAINT match_home_team_id_fkey FOREIGN KEY (home_team_id) REFERENCES public.team(id) ON DELETE CASCADE;
+    ADD CONSTRAINT match_home_team_id_fkey FOREIGN KEY (home_team_id) REFERENCES public.team (id) ON DELETE CASCADE;
 
 
 --
@@ -2992,7 +3005,7 @@ ALTER TABLE ONLY public.match
 --
 
 ALTER TABLE ONLY public.match
-    ADD CONSTRAINT match_referee_id_fkey FOREIGN KEY (referee_id) REFERENCES public.referee(id);
+    ADD CONSTRAINT match_referee_id_fkey FOREIGN KEY (referee_id) REFERENCES public.referee (id);
 
 
 --
@@ -3000,7 +3013,7 @@ ALTER TABLE ONLY public.match
 --
 
 ALTER TABLE ONLY public.team
-    ADD CONSTRAINT team_stam_number_fkey FOREIGN KEY (stam_number) REFERENCES public.club(stam_number);
+    ADD CONSTRAINT team_stam_number_fkey FOREIGN KEY (stam_number) REFERENCES public.club (stam_number);
 
 
 --
@@ -3008,7 +3021,7 @@ ALTER TABLE ONLY public.team
 --
 
 ALTER TABLE ONLY public."user"
-    ADD CONSTRAINT user_team_id_fkey FOREIGN KEY (team_id) REFERENCES public.team(id);
+    ADD CONSTRAINT user_team_id_fkey FOREIGN KEY (team_id) REFERENCES public.team (id);
 
 
 --

@@ -28,7 +28,9 @@ class Match(db.Model):
 					  db.CheckConstraint('home_team_id != away_team_id'),
 					  db.CheckConstraint('matchweek > 0'),
 					  db.CheckConstraint('goals_home_team >= 0 and goals_away_team >= 0'),
-					  db.UniqueConstraint('referee_id', 'date'))
+					  db.UniqueConstraint('referee_id', 'date'),
+					  db.UniqueConstraint('home_team_id', 'date'),
+					  db.UniqueConstraint('away_team_id', 'date'))
 	id = db.Column(db.Integer(), primary_key=True)
 	division_id = db.Column(db.Integer(), db.ForeignKey('division.id', ondelete='cascade'), nullable=False)
 	matchweek = db.Column(db.Integer(), nullable=False)
