@@ -5,14 +5,15 @@ from flask_sqlalchemy import SQLAlchemy
 
 bp = Blueprint('auth', __name__)
 
-from . import auth
-
 db = SQLAlchemy()
+
+from . import auth
 
 
 class Config:
 	SQLALCHEMY_DATABASE_URI = environ.get("DATABASE_URI")
 	SQLALCHEMY_TRACK_MODIFICATIONS = False
+	SECRET_KEY='LiefhebbersVoetbalLiga'
 
 
 def create_app() -> Flask:

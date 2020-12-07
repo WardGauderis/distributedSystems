@@ -1,3 +1,4 @@
+Flask-JWT
 flask
 flask-sqlalchemy
 psycopg2

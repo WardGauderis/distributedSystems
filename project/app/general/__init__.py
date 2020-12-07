@@ -19,9 +19,9 @@ def error_message(status_code):
 @bp.app_errorhandler(HTTPException)
 def error_handler(error):
 	if json_error():
-		payload = {'code': error.code, 'error': error_message(error.code), 'description': error.description}
+		payload = {'code': error.code, 'description': error.description, 'error': error_message(error.code)}
 		response = jsonify(payload)
 		response.status_code = error.code
 		return response
 	else:
-		return "DIT WORDT EEN MOOIE PAGINA"  # TODO
+		return "DIT WORDT EEN MOOIE PAGINA", error.code  # TODO

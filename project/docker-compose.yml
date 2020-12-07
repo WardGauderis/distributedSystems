@@ -9,9 +9,9 @@ services:
       - 80:80
     depends_on:
       - auth
-  #      - crud
-  #      - stats
-  #      - frontend
+      - crud
+      - stats
+      - frontend
   database:
     image: database
     build:
