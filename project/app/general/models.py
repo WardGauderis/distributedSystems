@@ -21,17 +21,83 @@ class Team(db.Model):
 	suffix = db.Column(db.String(32))
 	colors = db.Column(db.String(128), nullable=False)
 
+	def played(self, division, a, b):
+		return db.engine.execute(
+			f'select count(*) from match where (away_team_id = {self.id} or home_team_id = {self.id}) '
+			f'and date >= to_date(\'{a}\', \'YYYY-MM-DD\') and date < (current_date at time zone \'CET\')::date '
+			f'and division_id = {division.id} and goals_home_team is not null;').scalar()
+
+	def won(self, division, a, b):
+		return db.engine.execute(
+			f'select count(*) from match where (away_team_id = {self.id} and goals_away_team > goals_home_team or '
+			f'home_team_id = {self.id} and goals_home_team > goals_away_team) '
+			f'and date >= to_date(\'{a}\', \'YYYY-MM-DD\') and date < to_date(\'{b}\', \'YYYY-MM-DD\') '
+			f'and division_id = {division.id};').scalar()
+
+	def lost(self, division, a, b):
+		return db.engine.execute(
+			f'select count(*) from match where (away_team_id = {self.id} and goals_away_team < goals_home_team or '
+			f'home_team_id = {self.id} and goals_home_team < goals_away_team) '
+			f'and date >= to_date(\'{a}\', \'YYYY-MM-DD\') and date < to_date(\'{b}\', \'YYYY-MM-DD\') '
+			f'and division_id = {division.id};').scalar()
+
+	def drawn(self, division, a, b):
+		return db.engine.execute(
+			f'select count(*) from match where (away_team_id = {self.id} or home_team_id = {self.id}) '
+			f'and goals_home_team = goals_away_team '
+			f'and date >= to_date(\'{a}\', \'YYYY-MM-DD\') and date < to_date(\'{b}\', \'YYYY-MM-DD\') '
+			f'and division_id = {division.id};').scalar()
+
+	def gf(self, division, a, b):
+		return int(db.engine.execute(
+			f'select sum(goals.sum) from ('
+			f'select sum(goals_home_team) from match '
+			f'where home_team_id = {self.id} and date >= to_date(\'{a}\', \'YYYY-MM-DD\') '
+			f'and date < to_date(\'{b}\', \'YYYY-MM-DD\') and status is null '
+			f'and division_id = {division.id} '
+			f'union '
+			f'select sum(goals_away_team) from match '
+			f'where away_team_id = {self.id} and date >= to_date(\'{a}\', \'YYYY-MM-DD\') '
+			f'and date < to_date(\'{b}\', \'YYYY-MM-DD\') and status is null '
+			f'and division_id = {division.id}'
+			f') as goals;').scalar())
+
+	def ga(self, division, a, b):
+		return int(db.engine.execute(
+			f'select sum(goals.sum) from ('
+			f'select sum(goals_away_team) from match '
+			f'where home_team_id = {self.id} and date >= to_date(\'{a}\', \'YYYY-MM-DD\') '
+			f'and date < to_date(\'{b}\', \'YYYY-MM-DD\') and status is null '
+			f'and division_id = {division.id} '
+			f'union '
+			f'select sum(goals_home_team) from match '
+			f'where away_team_id = {self.id} and date >= to_date(\'{a}\', \'YYYY-MM-DD\') '
+			f'and date < to_date(\'{b}\', \'YYYY-MM-DD\') and status is null '
+			f'and division_id = {division.id}'
+			f') as goals;').scalar())
+
+	def gd(self, division, a, b):
+		return self.gf(division, a, b) - self.ga(division, a, b)
+
 
 class Division(db.Model):
 	id = db.Column(db.Integer(), db.Sequence('division_id_seq', start=7, increment=1), primary_key=True)
 	name = db.Column(db.String(64), nullable=False, unique=True)
 
+	matches = db.relationship('Match', lazy="dynamic")
+
+	def teams(self, date):
+		return Team.query.join(Match, Match.away_team_id == Team.id or Match.home_team_id == Team.id).filter(
+			Match.date >= date).filter(Match.division_id == self.id)
+
 
 class Match(db.Model):
-	__table_args__ = (db.UniqueConstraint('date', 'time', 'home_team_id', 'away_team_id'),
+	__table_args__ = (db.UniqueConstraint('date', 'home_team_id', 'away_team_id'),
 					  db.CheckConstraint('home_team_id != away_team_id'),
 					  db.CheckConstraint('matchweek > 0'),
 					  db.CheckConstraint('goals_home_team >= 0 and goals_away_team >= 0'),
+					  db.CheckConstraint('goals_home_team is null and goals_away_team is null or goals_home_team is '
+										 'not null and goals_away_team is not null'),
 					  db.UniqueConstraint('referee_id', 'date'),
 					  db.UniqueConstraint('home_team_id', 'date'),
 					  db.UniqueConstraint('away_team_id', 'date'))

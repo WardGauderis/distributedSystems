@@ -5,9 +5,9 @@ from flask_sqlalchemy import SQLAlchemy
 
 bp = Blueprint('stats', __name__)
 
-from . import stats
-
 db = SQLAlchemy()
+
+from . import stats
 
 
 class Config:

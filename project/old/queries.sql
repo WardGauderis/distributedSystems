@@ -82,6 +82,7 @@ where (m.home_team_id = 33 and m.away_team_id = 67 and m.goals_home_team > m.goa
     or time < (current_time at time zone 'CET')::time)
   and (status is null);
 
+
 -- al gespeeld
 select *
 from match
