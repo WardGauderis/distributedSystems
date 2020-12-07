@@ -15,11 +15,19 @@ class Club(db.Model):
 
 
 class Team(db.Model):
-	__table_args__ = (db.UniqueConstraint('suffix', 'stam_number'),)
+	__table_args__ = (db.UniqueConstraint('suffix', 'stam_number'),
+					  db.CheckConstraint('id > 0'))
 	id = db.Column(db.Integer(), db.Sequence('team_id_seq', start=71, increment=1), primary_key=True)
 	stam_number = db.Column(db.Integer(), db.ForeignKey('club.stam_number'), nullable=False)
 	suffix = db.Column(db.String(32))
 	colors = db.Column(db.String(128), nullable=False)
+
+	club = db.relationship('Club')
+
+	def name(self):
+		if self.suffix:
+			return self.club.name + ' ' + self.suffix
+		return self.club.name
 
 	def played(self, division, a, b):
 		return db.engine.execute(
@@ -60,7 +68,7 @@ class Team(db.Model):
 			f'where away_team_id = {self.id} and date >= to_date(\'{a}\', \'YYYY-MM-DD\') '
 			f'and date < to_date(\'{b}\', \'YYYY-MM-DD\') and status is null '
 			f'and division_id = {division.id}'
-			f') as goals;').scalar())
+			f') as goals;').scalar() or 0)
 
 	def ga(self, division, a, b):
 		return int(db.engine.execute(
@@ -74,7 +82,7 @@ class Team(db.Model):
 			f'where away_team_id = {self.id} and date >= to_date(\'{a}\', \'YYYY-MM-DD\') '
 			f'and date < to_date(\'{b}\', \'YYYY-MM-DD\') and status is null '
 			f'and division_id = {division.id}'
-			f') as goals;').scalar())
+			f') as goals;').scalar() or 0)
 
 	def gd(self, division, a, b):
 		return self.gf(division, a, b) - self.ga(division, a, b)
@@ -86,9 +94,9 @@ class Division(db.Model):
 
 	matches = db.relationship('Match', lazy="dynamic")
 
-	def teams(self, date):
+	def teams(self, a, b):
 		return Team.query.join(Match, Match.away_team_id == Team.id or Match.home_team_id == Team.id).filter(
-			Match.date >= date).filter(Match.division_id == self.id)
+			Match.date >= a).filter(Match.date < b).filter(Match.division_id == self.id)
 
 
 class Match(db.Model):
@@ -112,6 +120,9 @@ class Match(db.Model):
 	goals_away_team = db.Column(db.Integer())
 	status = db.Column(db.Enum('Postponed', 'Canceled', 'Forfait', name='match_status'))
 	referee_id = db.Column(db.Integer(), db.ForeignKey('referee.id'))
+
+	home_team = db.relationship('Team', foreign_keys=[home_team_id])
+	away_team = db.relationship('Team', foreign_keys=[away_team_id])
 
 
 class Referee(db.Model):
