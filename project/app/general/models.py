@@ -70,6 +70,8 @@ class User(db.Model):
 	is_admin = db.Column(db.Boolean(), nullable=False)
 	is_super_admin = db.Column(db.Boolean(), nullable=False)
 
+	team = db.relationship('Team')
+
 	def set_password(self, password):
 		self.password_hash = generate_password_hash(password)
 
@@ -78,7 +80,7 @@ class User(db.Model):
 
 	def get_token(self):
 		return jwt.encode(
-			{'id': self.id, 'exp': datetime.utcnow() + timedelta(minutes=30)},
+			{'id': self.id, 'exp': datetime.utcnow() + timedelta(hours=24)},
 			current_app.config['SECRET_KEY'],
 			algorithm='HS256',
 		).decode('utf-8')
