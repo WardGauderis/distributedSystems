@@ -4,6 +4,7 @@ from app.service import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import current_app
 
+
 # TODO upgrade and fill
 
 class Club(db.Model):
@@ -33,7 +34,7 @@ class Team(db.Model):
 	def played(self, division, a, b):
 		return db.engine.execute(
 			f'select count(*) from match where (away_team_id = {self.id} or home_team_id = {self.id}) '
-			f'and date >= to_date(\'{a}\', \'YYYY-MM-DD\') and date <= (current_date at time zone \'CET\')::date '
+			f'and date >= to_date(\'{a}\', \'YYYY-MM-DD\') and date <= to_date(\'{b}\', \'YYYY-MM-DD\') '
 			f'and division_id = {division.id} and goals_home_team is not null;').scalar()
 
 	def won(self, division, a, b):
@@ -90,6 +91,11 @@ class Team(db.Model):
 
 	def points(self, division, a, b):
 		return self.won(division, a, b) * 3 + self.drawn(division, a, b)
+
+	def recent(self, a, b):
+		return Match.query.filter(db.or_(Match.home_team_id == self.id, Match.away_team_id == self.id)).filter(
+			Match.date <= b).filter(Match.goals_home_team != None).order_by(
+			Match.date.desc()).limit(5).all()
 
 
 class Division(db.Model):
@@ -195,6 +201,40 @@ class Match(db.Model):
 	home_team = db.relationship('Team', foreign_keys=[home_team_id])
 	away_team = db.relationship('Team', foreign_keys=[away_team_id])
 	referee = db.relationship('Referee')
+
+	def history(self, a, b):
+		count = db.engine.execute(
+			f'select count(*) from match '
+			f'where (away_team_id = {self.away_team_id} and home_team_id = {self.home_team_id} '
+			f'or away_team_id = {self.home_team_id} and home_team_id = {self.away_team_id}) '
+			f'and date <= to_date(\'{b}\', \'YYYY-MM-DD\');').scalar()
+		home_team_wins = db.engine.execute(
+			f'select count(*) from match '
+			f'where (away_team_id = {self.away_team_id} and home_team_id = {self.home_team_id} '
+			f'and goals_home_team > goals_away_team '
+			f'or away_team_id = {self.home_team_id} and home_team_id = {self.away_team_id} '
+			f'and goals_away_team > match.goals_home_team ) '
+			f'and date <= to_date(\'{b}\', \'YYYY-MM-DD\')').scalar()
+		draws = db.engine.execute(
+			f'select count(*) from match '
+			f'where (away_team_id = {self.away_team_id} and home_team_id = {self.home_team_id} '
+			f'or away_team_id = {self.home_team_id} and home_team_id = {self.away_team_id}) '
+			f'and date <= to_date(\'{b}\', \'YYYY-MM-DD\') '
+			f'and goals_home_team = goals_away_team;').scalar()
+		return count, home_team_wins, count - home_team_wins - draws
+
+	def recent(self, a, b):
+		return Match.query.filter(
+			db.or_(db.and_(Match.home_team_id == self.home_team_id, Match.away_team_id == self.away_team_id),
+				   db.and_(Match.home_team_id == self.away_team_id, Match.away_team_id == self.home_team_id))).filter(
+			Match.date <= b).filter(Match.goals_home_team != None).order_by(Match.date.desc()).limit(3).all()
+
+	def result(self, team):
+		if self.goals_home_team > self.goals_away_team:
+			return 'W' if self.home_team == team else 'L'
+		elif self.goals_home_team < self.goals_away_team:
+			return 'L' if self.home_team == team else 'W'
+		return 'D'
 
 
 class Referee(db.Model):

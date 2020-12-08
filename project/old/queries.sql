@@ -98,6 +98,5 @@ order by date desc;
 
 select *
 from match
-where (goals_home_team = 0 or goals_away_team = 0)
-  and division_id = 1
-order by date desc;
+where division_id = 1 and date > now()
+order by date asc ;
