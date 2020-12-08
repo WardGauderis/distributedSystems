@@ -2,7 +2,7 @@ from datetime import date, datetime
 
 from flask import jsonify, abort
 
-from app.general.models import Division, Match
+from app.general.models import Division, Match, Team
 from . import bp
 
 
@@ -20,6 +20,12 @@ def get_season_start_and_end(season, past=True):
 
 def get_season(datum: date):
 	return datum.year - (datum < date(datum.year, 4, 30))
+
+
+def weather(date, time):  # TODO weer
+	# key = '7cad07efa2c3ba1124667a8fd6c75483'
+	# url = f'api.openweathermap.org/data/2.5/forecast?q={city name}&appid={key}'
+	return {}
 
 
 @bp.route('/league_table/<int:div>/<int:season>', methods=['GET'])
@@ -141,13 +147,13 @@ def fixture(id):
 			})
 
 		result['recent_matches_home_team'] = []
-		for home_team_match in match.home_team.recent(a, b):
+		for home_team_match in match.home_team.recent(b, 5):
 			result['recent_matches_home_team'].append({
 				'id': home_team_match.id,
 				'result': home_team_match.result(match.home_team)
 			})
 		result['recent_matches_away_team'] = []
-		for away_team_match in match.away_team.recent(a, b):
+		for away_team_match in match.away_team.recent(b, 5):
 			result['recent_matches_away_team'].append({
 				'id': away_team_match.id,
 				'result': away_team_match.result(match.away_team)
@@ -155,5 +161,37 @@ def fixture(id):
 	elif match.goals_home_team is not None:
 		result['goals_home_team'] = match.goals_home_team
 		result['goals_away_team'] = match.goals_away_team
+	if 0 <= Match.date - date.today() <= 7:
+		result['weather'] = weather(match.date, match.time)
 
+	return jsonify(result)
+
+
+@bp.route('/team/<int:id>', methods=['GET'])
+def team(id):
+	team = Team.query.get(id)
+	if not team:
+		abort(404)
+	result = {
+		'id': team.id,
+		'colors': team.colors,
+		'club_name': team.club.name,
+		'stam_number': team.club.stam_number,
+		'recent_matches': [{
+			'id': match.id,
+			'home_team_id': match.home_team_id,
+			'away_team_id': match.away_team_id,
+			'goals_home_team': match.goals_home_team,
+			'goalse_away_team': match.goals_away_team,
+			'date': str(match.date)
+		} for match in team.recent(date.today(), 3)],
+		'future_matches': [{
+			'id': match.id,
+			'home_team_id': match.home_team_id,
+			'away_team_id': match.away_team_id,
+			'date': str(match.date)
+		} for match in team.future(date.today())]
+	}
+	if team.suffix:
+		result['suffix'] = team.suffix
 	return jsonify(result)

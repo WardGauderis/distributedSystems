@@ -92,10 +92,15 @@ class Team(db.Model):
 	def points(self, division, a, b):
 		return self.won(division, a, b) * 3 + self.drawn(division, a, b)
 
-	def recent(self, a, b):
+	def recent(self, b, limit):
 		return Match.query.filter(db.or_(Match.home_team_id == self.id, Match.away_team_id == self.id)).filter(
 			Match.date <= b).filter(Match.goals_home_team != None).order_by(
-			Match.date.desc()).limit(5).all()
+			Match.date.desc()).limit(limit).all()
+
+	def future(self, a):
+		return Match.query.filter(db.or_(Match.home_team_id == self.id, Match.away_team_id == self.id)).filter(
+			Match.date >= a).filter(Match.goals_home_team == None).order_by(
+			Match.date).all()
 
 
 class Division(db.Model):
