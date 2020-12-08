@@ -4,6 +4,7 @@ from app.service import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import current_app
 
+# TODO upgrade and fill
 
 class Club(db.Model):
 	stam_number = db.Column(db.Integer(), db.Sequence('club_stam_number_seq', start=333, increment=1), primary_key=True)
@@ -32,28 +33,28 @@ class Team(db.Model):
 	def played(self, division, a, b):
 		return db.engine.execute(
 			f'select count(*) from match where (away_team_id = {self.id} or home_team_id = {self.id}) '
-			f'and date >= to_date(\'{a}\', \'YYYY-MM-DD\') and date < (current_date at time zone \'CET\')::date '
+			f'and date >= to_date(\'{a}\', \'YYYY-MM-DD\') and date <= (current_date at time zone \'CET\')::date '
 			f'and division_id = {division.id} and goals_home_team is not null;').scalar()
 
 	def won(self, division, a, b):
 		return db.engine.execute(
 			f'select count(*) from match where (away_team_id = {self.id} and goals_away_team > goals_home_team or '
 			f'home_team_id = {self.id} and goals_home_team > goals_away_team) '
-			f'and date >= to_date(\'{a}\', \'YYYY-MM-DD\') and date < to_date(\'{b}\', \'YYYY-MM-DD\') '
+			f'and date >= to_date(\'{a}\', \'YYYY-MM-DD\') and date <= to_date(\'{b}\', \'YYYY-MM-DD\') '
 			f'and division_id = {division.id};').scalar()
 
 	def lost(self, division, a, b):
 		return db.engine.execute(
 			f'select count(*) from match where (away_team_id = {self.id} and goals_away_team < goals_home_team or '
 			f'home_team_id = {self.id} and goals_home_team < goals_away_team) '
-			f'and date >= to_date(\'{a}\', \'YYYY-MM-DD\') and date < to_date(\'{b}\', \'YYYY-MM-DD\') '
+			f'and date >= to_date(\'{a}\', \'YYYY-MM-DD\') and date <= to_date(\'{b}\', \'YYYY-MM-DD\') '
 			f'and division_id = {division.id};').scalar()
 
 	def drawn(self, division, a, b):
 		return db.engine.execute(
 			f'select count(*) from match where (away_team_id = {self.id} or home_team_id = {self.id}) '
 			f'and goals_home_team = goals_away_team '
-			f'and date >= to_date(\'{a}\', \'YYYY-MM-DD\') and date < to_date(\'{b}\', \'YYYY-MM-DD\') '
+			f'and date >= to_date(\'{a}\', \'YYYY-MM-DD\') and date <= to_date(\'{b}\', \'YYYY-MM-DD\') '
 			f'and division_id = {division.id};').scalar()
 
 	def gf(self, division, a, b):
@@ -61,12 +62,12 @@ class Team(db.Model):
 			f'select sum(goals.sum) from ('
 			f'select sum(goals_home_team) from match '
 			f'where home_team_id = {self.id} and date >= to_date(\'{a}\', \'YYYY-MM-DD\') '
-			f'and date < to_date(\'{b}\', \'YYYY-MM-DD\') and status is null '
+			f'and date <= to_date(\'{b}\', \'YYYY-MM-DD\') '
 			f'and division_id = {division.id} '
 			f'union '
 			f'select sum(goals_away_team) from match '
 			f'where away_team_id = {self.id} and date >= to_date(\'{a}\', \'YYYY-MM-DD\') '
-			f'and date < to_date(\'{b}\', \'YYYY-MM-DD\') and status is null '
+			f'and date <= to_date(\'{b}\', \'YYYY-MM-DD\') '
 			f'and division_id = {division.id}'
 			f') as goals;').scalar() or 0)
 
@@ -75,17 +76,20 @@ class Team(db.Model):
 			f'select sum(goals.sum) from ('
 			f'select sum(goals_away_team) from match '
 			f'where home_team_id = {self.id} and date >= to_date(\'{a}\', \'YYYY-MM-DD\') '
-			f'and date < to_date(\'{b}\', \'YYYY-MM-DD\') and status is null '
+			f'and date <= to_date(\'{b}\', \'YYYY-MM-DD\') '
 			f'and division_id = {division.id} '
 			f'union '
 			f'select sum(goals_home_team) from match '
 			f'where away_team_id = {self.id} and date >= to_date(\'{a}\', \'YYYY-MM-DD\') '
-			f'and date < to_date(\'{b}\', \'YYYY-MM-DD\') and status is null '
+			f'and date <= to_date(\'{b}\', \'YYYY-MM-DD\') '
 			f'and division_id = {division.id}'
 			f') as goals;').scalar() or 0)
 
 	def gd(self, division, a, b):
 		return self.gf(division, a, b) - self.ga(division, a, b)
+
+	def points(self, division, a, b):
+		return self.won(division, a, b) * 3 + self.drawn(division, a, b)
 
 
 class Division(db.Model):
@@ -94,9 +98,76 @@ class Division(db.Model):
 
 	matches = db.relationship('Match', lazy="dynamic")
 
+	@staticmethod
+	def divisions_in_season(a, b):
+		return Division.query.join(Match, Match.division_id == Division.id).filter(
+			Match.date >= a).filter(Match.date <= b).all()
+
 	def teams(self, a, b):
 		return Team.query.join(Match, Match.away_team_id == Team.id or Match.home_team_id == Team.id).filter(
-			Match.date >= a).filter(Match.date < b).filter(Match.division_id == self.id)
+			Match.date >= a).filter(Match.date < b).filter(Match.division_id == self.id).all()
+
+	def best_attack(self, a, b):
+		id, goals = db.engine.execute(
+			f'select goals.id, sum(goals.sum) from ('
+			f'select team.id, sum(goals_home_team) from team '
+			f'join match on team.id = match.home_team_id '
+			f'where division_id = {self.id} '
+			f'and date >= to_date(\'{a}\', \'YYYY-MM-DD\') and date <= to_date(\'{b}\', \'YYYY-MM-DD\') '
+			f'group by team.id '
+			f'union '
+			f'select team.id, sum(goals_away_team) from team '
+			f'join match on team.id = match.away_team_id '
+			f'where division_id = {self.id} '
+			f'and date >= to_date(\'{a}\', \'YYYY-MM-DD\') and date <= to_date(\'{b}\', \'YYYY-MM-DD\') '
+			f'group by team.id '
+			f') as goals '
+			f'group by goals.id '
+			f'order by sum(goals.sum) desc '
+			f'limit 1;').fetchone() or (None, 0)
+		return Team.query.get(id), int(goals)
+
+	def best_defence(self, a, b):
+		id, goals = db.engine.execute(
+			f'select goals.id, sum(goals.sum) from ('
+			f'select team.id, sum(goals_home_team) from team '
+			f'join match on team.id = match.away_team_id '
+			f'where division_id = {self.id} '
+			f'and date >= to_date(\'{a}\', \'YYYY-MM-DD\') and date <= to_date(\'{b}\', \'YYYY-MM-DD\') '
+			f'group by team.id '
+			f'union '
+			f'select team.id, sum(goals_away_team) from team '
+			f'join match on team.id = match.home_team_id '
+			f'where division_id = {self.id} '
+			f'and date >= to_date(\'{a}\', \'YYYY-MM-DD\') and date <= to_date(\'{b}\', \'YYYY-MM-DD\') '
+			f'group by team.id '
+			f') as goals '
+			f'group by goals.id '
+			f'order by sum(goals.sum) '
+			f'limit 1;').fetchone() or (None, 0)
+		return Team.query.get(id), int(goals)
+
+	def most_clean_sheets(self, a, b):
+		id, count = db.engine.execute(
+			f'select clean_sheets.id, sum(clean_sheets.count) from ('
+			f'select team.id, count(match.id) from team '
+			f'join match on team.id = match.home_team_id '
+			f'where division_id = {self.id} '
+			f'and date >= to_date(\'{a}\', \'YYYY-MM-DD\') and date <= to_date(\'{b}\', \'YYYY-MM-DD\') '
+			f'and goals_away_team = 0 '
+			f'group by team.id '
+			f'union '
+			f'select team.id, count(match.id) from team '
+			f'join match on team.id = match.away_team_id '
+			f'where division_id = {self.id} '
+			f'and date >= to_date(\'{a}\', \'YYYY-MM-DD\') and date <= to_date(\'{b}\', \'YYYY-MM-DD\') '
+			f'and goals_home_team = 0 '
+			f'group by team.id '
+			f') as clean_sheets '
+			f'group by clean_sheets.id '
+			f'order by sum(clean_sheets.count) desc '
+			f'limit 1;').fetchone() or (None, 0)
+		return Team.query.get(id), int(count)
 
 
 class Match(db.Model):
@@ -123,6 +194,7 @@ class Match(db.Model):
 
 	home_team = db.relationship('Team', foreign_keys=[home_team_id])
 	away_team = db.relationship('Team', foreign_keys=[away_team_id])
+	referee = db.relationship('Referee')
 
 
 class Referee(db.Model):

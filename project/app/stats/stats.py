@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, time, datetime
 
 from flask import jsonify, abort
 
@@ -11,9 +11,11 @@ def get_season_start_and_end(season, past=True):
 	# year - 2017 - week >= 15
 	# 6 : year - 2017 - week >= 17
 	if season <= 0:
-		if past: return date(1, 9, 4), date.today()
-		else: return date.today(), date(3000, 1, 1)
-	return date(season, 9, 4), min(date(season + 1, 4, 25), date.today())
+		if past:
+			return date(1, 9, 4), date.today()
+		else:
+			return date.today(), date(3000, 1, 1)
+	return date(season, 9, 1), min(date(season + 1, 4, 30), date.today())
 
 
 @bp.route('/league_table/<int:div>/<int:season>', methods=['GET'])
@@ -21,8 +23,8 @@ def league_table(div, season):
 	division = Division.query.get(div) or abort(404)
 	try:
 		a, b = get_season_start_and_end(season)
-		teams = division.teams(a, b).all()
-		return jsonify([{
+		teams = division.teams(a, b)
+		result = [{
 			'id': team.id,
 			'name': team.name(),
 			'played': team.played(division, a, b),
@@ -31,8 +33,12 @@ def league_table(div, season):
 			'lost': team.lost(division, a, b),
 			'GF': team.gf(division, a, b),
 			'GA': team.ga(division, a, b),
-			'GD': team.gd(division, a, b)
-		} for team in teams])
+			'GD': team.gd(division, a, b),
+			'points': team.points(division, a, b)
+		} for team in teams]
+		result.sort(key=lambda x: x['points'], reverse=True)
+		print(result)
+		return jsonify(result)
 	except:
 		abort(400)
 
@@ -62,3 +68,51 @@ def fixtures(div, team, season, week):
 		return jsonify(result)
 	except:
 		abort(400)
+
+
+@bp.route('/top/<int:season>', methods=['GET'])
+def top(season):
+	try:
+		a, b = get_season_start_and_end(season)
+		result = []
+		for division in Division.divisions_in_season(a, b):
+			attack, gf = division.best_attack(a, b)
+			defense, ga = division.best_defence(a, b)
+			sheets, count = division.most_clean_sheets(a, b)
+			result.append({
+				'division_id': division.id,
+				'division_name': division.name,
+				'best_attack': {
+					'team_id': attack.id,
+					'team_name': attack.name(),
+					'GF': gf},
+				'best_defence': {
+					'team_id': defense.id,
+					'team_name': defense.name(),
+					'GA': ga},
+				'most_clean_sheets': {
+					'team_id': sheets.id,
+					'team_name': sheets.name(),
+					'count': count}
+			})
+		return jsonify(result)
+	except:
+		abort(400)
+
+
+@bp.route('/fixture/<int:id>', methods=['GET'])
+def fixture(id):
+	match = Match.query.get(id)
+	if not match:
+		abort(404)
+	result = {
+		'date': match.date,
+		'time': match.time,
+	}
+	if match.referee:
+		result['referee_first_name'] = match.referee.first_name
+		result['referee_last_name'] = match.referee.last_name
+	if match.date > date.today() or (match.date == date.today() and match.time > datetime.now().time()):
+		result['referee_first_name'] = match.referee.first_name
+		result['referee_last_name'] = match.referee.last_name
+	return jsonify(result)

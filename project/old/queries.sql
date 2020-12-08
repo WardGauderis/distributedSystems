@@ -96,3 +96,8 @@ order by date desc;
 -- where date = to_date('2018-09-05', 'YYYY-MM-DD')
 --   and home_team_id = 33;
 
+select *
+from match
+where (goals_home_team = 0 or goals_away_team = 0)
+  and division_id = 1
+order by date desc;
