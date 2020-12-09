@@ -1,4 +1,5 @@
-Flask-JWT
-flask
-flask-sqlalchemy
-psycopg2
+Flask-JWT==0.3.2
+flask==1.1.2
+flask-sqlalchemy==2.4.4
+psycopg2==2.8.6
+requests==2.25.0

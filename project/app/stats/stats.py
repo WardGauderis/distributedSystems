@@ -1,4 +1,5 @@
-from datetime import date, datetime
+import requests
+from datetime import date, datetime, timedelta
 
 from flask import jsonify, abort
 
@@ -22,10 +23,35 @@ def get_season(datum: date):
 	return datum.year - (datum < date(datum.year, 4, 30))
 
 
-def weather(date, time):  # TODO weer
-	# key = '7cad07efa2c3ba1124667a8fd6c75483'
-	# url = f'api.openweathermap.org/data/2.5/forecast?q={city name}&appid={key}'
-	return {}
+def weather(datum, time, location):
+	try:
+		json = requests.get('http://api.positionstack.com/v1/forward', {
+			'access_key': 'f21de7a509fc77d30142b724bc3f53ef',
+			'query': location,
+			'country': 'BE',
+			'region': 'Antwerp',
+			'limit': 1,
+		}).json()
+		lat = json['data'][0]['latitude']
+		lon = json['data'][0]['longitude']
+		json = requests.get('http://api.openweathermap.org/data/2.5/onecall', {
+			'appid': '7cad07efa2c3ba1124667a8fd6c75483',
+			'lat': lat,
+			'lon': lon,
+			'exclude': 'current,minutely,hourly,alerts',
+			'units': 'metric'
+		}).json()
+		weather = json['daily'][(datum - date.today()).days]
+		return {
+			'temp_max': weather['temp']['max'],
+			'temp_min': weather['temp']['min'],
+			'description': weather['weather'][0]['description'],
+			'id': weather['weather'][0]['id'],
+			'rain': weather['rain'],
+			'feels_like': weather['feels_like']['day']
+		}
+	except:
+		return 'Weather/Geolocation service error'
 
 
 @bp.route('/league_table/<int:div>/<int:season>', methods=['GET'])
@@ -137,13 +163,13 @@ def fixture(id):
 		result['away_team_wins'] = away_team_wins
 
 		result['recent_matches'] = []
-		for match in match.recent(a, b):
+		for recent_match in match.recent(a, b):
 			result['recent_matches'].append({
-				'id': match.id,
-				'home_team_id': match.home_team_id,
-				'away_team_id': match.away_team_id,
-				'goals_home_team': match.goals_home_team,
-				'goalse_away_team': match.goals_away_team
+				'id': recent_match.id,
+				'home_team_id': recent_match.home_team_id,
+				'away_team_id': recent_match.away_team_id,
+				'goals_home_team': recent_match.goals_home_team,
+				'goalse_away_team': recent_match.goals_away_team
 			})
 
 		result['recent_matches_home_team'] = []
@@ -161,8 +187,8 @@ def fixture(id):
 	elif match.goals_home_team is not None:
 		result['goals_home_team'] = match.goals_home_team
 		result['goals_away_team'] = match.goals_away_team
-	if 0 <= Match.date - date.today() <= 7:
-		result['weather'] = weather(match.date, match.time)
+	if date.today() <= match.date <= date.today() + timedelta(days=7):
+		result['weather'] = weather(match.date, match.time, match.home_team.club.location())
 
 	return jsonify(result)
 

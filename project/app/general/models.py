@@ -15,6 +15,9 @@ class Club(db.Model):
 	city = db.Column(db.String(64), nullable=False)
 	website = db.Column(db.String(128))
 
+	def location(self):
+		return f'{self.address} {self.zip_code} {self.city}'
+
 
 class Team(db.Model):
 	__table_args__ = (db.UniqueConstraint('suffix', 'stam_number'),
