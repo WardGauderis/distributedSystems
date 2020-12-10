@@ -12,13 +12,8 @@ class Model:
 		return {k: str(v) for k, v in map.items() if v is not None}
 
 	def deserialize(self, map):
-		print(map)
-		import sys
-		sys.stdout.flush()
 		for key, value in map.items():
-			print(key)
-			sys.stdout.flush()
-			if hasattr(self, key) and key != '_sa_instance_state' and key != 'id' and key != 'stam_number':
+			if hasattr(self, key) and key not in ['_sa_instance_state', '__table_args__', 'id']:
 				setattr(self, key, value)
 
 
@@ -37,7 +32,7 @@ class Club(db.Model, Model):
 class Team(db.Model, Model):
 	__table_args__ = (db.UniqueConstraint('suffix', 'stam_number'),
 					  db.CheckConstraint('id > 0'))
-	id = db.Column(db.Integer(), db.Sequence('team_id_seq', start=71, increment=1), primary_key=True)
+	id = db.Column(db.Integer(), db.Sequence('team_id_seq', start=72, increment=1), primary_key=True)
 	stam_number = db.Column(db.Integer(), db.ForeignKey('club.stam_number', ondelete='cascade'), nullable=False)
 	suffix = db.Column(db.String(32))
 	colors = db.Column(db.String(128), nullable=False)
@@ -210,11 +205,11 @@ class Match(db.Model, Model):
 	id = db.Column(db.Integer(), primary_key=True)
 	division_id = db.Column(db.Integer(), db.ForeignKey('division.id', ondelete='cascade'), nullable=False)
 	matchweek = db.Column(db.Integer(), nullable=False)
-	date = db.Column(db.Date(), nullable=False)  # TODO match matchweek
+	date = db.Column(db.Date(), nullable=False)
 	time = db.Column(db.Time(), nullable=False)
 	home_team_id = db.Column(db.Integer(), db.ForeignKey('team.id', ondelete='cascade'), nullable=False)
 	away_team_id = db.Column(db.Integer(), db.ForeignKey('team.id', ondelete='cascade'), nullable=False)
-	goals_home_team = db.Column(db.Integer())  # TODO null??
+	goals_home_team = db.Column(db.Integer())
 	goals_away_team = db.Column(db.Integer())
 	status = db.Column(db.Enum('Postponed', 'Canceled', 'Forfait', name='match_status'))
 	referee_id = db.Column(db.Integer(), db.ForeignKey('referee.id', ondelete='set null'))

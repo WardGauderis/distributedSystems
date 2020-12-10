@@ -181,7 +181,7 @@ ALTER SEQUENCE public.referee_id_seq OWNED BY public.referee.id;
 --
 
 CREATE SEQUENCE public.seq_reg_id
-    START WITH 71
+    START WITH 72
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
@@ -209,7 +209,7 @@ ALTER TABLE public.team OWNER TO postgres;
 --
 
 CREATE SEQUENCE public.team_id_seq
-    START WITH 71
+    START WITH 72
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
@@ -2896,14 +2896,14 @@ SELECT pg_catalog.setval('public.referee_id_seq', 10, true);
 -- Name: seq_reg_id; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.seq_reg_id', 71, false);
+SELECT pg_catalog.setval('public.seq_reg_id', 72, false);
 
 
 --
 -- Name: team_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.team_id_seq', 71, false);
+SELECT pg_catalog.setval('public.team_id_seq', 72, false);
 
 
 --

@@ -5,14 +5,30 @@ from sqlalchemy import exc
 from psycopg2 import errorcodes
 
 
+# TODO user: niet wachtwoord, admin, superadmin + specifieke updates plust authorizatie
+
 def handle_error(e, model):
 	code = e.orig.pgcode
 	if code == errorcodes.UNIQUE_VIOLATION:
+		if model == 'match':
+			message = str(e.orig)
+			if 'match_home_team_id_date_key' in message or 'match_away_team_id_date_key' in message:
+				abort(409, f'Not all teams are free to participate in this match this day.')
+			if 'match_referee_id_date_key' in message:
+				abort(409, f'Referee is not free to participate in this match this day.')
 		abort(409, f'This {model} already exists.')
 	elif code == errorcodes.NOT_NULL_VIOLATION:
-		abort(400, f'Not all required information was provided for this {model}')
+		abort(400, f'Not all required information was provided.')
 	elif code == errorcodes.INVALID_TEXT_REPRESENTATION:
-		abort(400, f'Not all required information was correctly formatted for this {model}')
+		abort(400, f'Not all information was correctly formatted.')
+	elif code == errorcodes.FOREIGN_KEY_VIOLATION:
+		abort(409, f'Could not find the referenced id/stam_number.')
+	elif code == errorcodes.STRING_DATA_RIGHT_TRUNCATION:
+		abort(400, f'String value is too long.')
+	elif code == errorcodes.CHECK_VIOLATION:
+		abort(409, f'This information does not represent a logically correct {model}.')
+	elif code == errorcodes.INVALID_DATETIME_FORMAT:
+		abort(400, f'Date/Time was not correctly formatted.')
 	else:
 		abort(500, str(e.orig) + ' ' + str(type(e.orig)))
 
@@ -28,7 +44,7 @@ def clubs():
 			club.deserialize(request.get_json(force=True) or {})
 			db.session.add(club)
 			db.session.commit()
-			return ''
+			return jsonify({'stam_number': club.stam_number})
 		except exc.StatementError as e:
 			handle_error(e, 'club')
 
@@ -66,10 +82,11 @@ def teams():
 	elif request.method == 'POST':
 		team = Team()
 		try:
+			print(request.get_json())
 			team.deserialize(request.get_json(force=True) or {})
 			db.session.add(team)
 			db.session.commit()
-			return ''
+			return jsonify({'id': team.id})
 		except exc.StatementError as e:
 			handle_error(e, 'team')
 
@@ -110,7 +127,7 @@ def divisions():
 			division.deserialize(request.get_json(force=True) or {})
 			db.session.add(division)
 			db.session.commit()
-			return ''
+			return jsonify({'id': division.id})
 		except exc.StatementError as e:
 			handle_error(e, 'division')
 
@@ -151,8 +168,9 @@ def matches():
 			match.deserialize(request.get_json(force=True) or {})
 			db.session.add(match)
 			db.session.commit()
-			return ''
+			return jsonify({'id': match.id})
 		except exc.StatementError as e:
+
 			handle_error(e, 'match')
 
 
@@ -192,7 +210,7 @@ def referees():
 			referee.deserialize(request.get_json(force=True) or {})
 			db.session.add(referee)
 			db.session.commit()
-			return ''
+			return jsonify({'id': referee.id})
 		except exc.StatementError as e:
 			handle_error(e, 'referee')
 
@@ -233,7 +251,7 @@ def users():
 			user.deserialize(request.get_json(force=True) or {})
 			db.session.add(user)
 			db.session.commit()
-			return ''
+			return jsonify({'id': user.id})
 		except exc.StatementError as e:
 			handle_error(e, 'user')
 
