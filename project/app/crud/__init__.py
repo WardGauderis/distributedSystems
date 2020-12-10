@@ -5,9 +5,9 @@ from flask_sqlalchemy import SQLAlchemy
 
 bp = Blueprint('crud', __name__)
 
-from . import crud
-
 db = SQLAlchemy()
+
+from . import crud
 
 
 class Config:

@@ -3062,7 +3062,7 @@ ALTER TABLE ONLY public.match
 --
 
 ALTER TABLE ONLY public.match
-    ADD CONSTRAINT match_referee_id_fkey FOREIGN KEY (referee_id) REFERENCES public.referee(id);
+    ADD CONSTRAINT match_referee_id_fkey FOREIGN KEY (referee_id) REFERENCES public.referee(id) ON DELETE SET NULL;
 
 
 --
@@ -3070,7 +3070,7 @@ ALTER TABLE ONLY public.match
 --
 
 ALTER TABLE ONLY public.team
-    ADD CONSTRAINT team_stam_number_fkey FOREIGN KEY (stam_number) REFERENCES public.club(stam_number);
+    ADD CONSTRAINT team_stam_number_fkey FOREIGN KEY (stam_number) REFERENCES public.club(stam_number) ON DELETE CASCADE;
 
 
 --
@@ -3078,7 +3078,7 @@ ALTER TABLE ONLY public.team
 --
 
 ALTER TABLE ONLY public."user"
-    ADD CONSTRAINT user_team_id_fkey FOREIGN KEY (team_id) REFERENCES public.team(id);
+    ADD CONSTRAINT user_team_id_fkey FOREIGN KEY (team_id) REFERENCES public.team(id) ON DELETE SET NULL;
 
 
 --

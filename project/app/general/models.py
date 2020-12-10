@@ -5,9 +5,24 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask import current_app
 
 
-# TODO upgrade and fill
+class Model:
+	def serialize(self):
+		map = dict(vars(self))
+		map.pop('_sa_instance_state')
+		return {k: str(v) for k, v in map.items() if v is not None}
 
-class Club(db.Model):
+	def deserialize(self, map):
+		print(map)
+		import sys
+		sys.stdout.flush()
+		for key, value in map.items():
+			print(key)
+			sys.stdout.flush()
+			if hasattr(self, key) and key != '_sa_instance_state' and key != 'id' and key != 'stam_number':
+				setattr(self, key, value)
+
+
+class Club(db.Model, Model):
 	stam_number = db.Column(db.Integer(), db.Sequence('club_stam_number_seq', start=333, increment=1), primary_key=True)
 	name = db.Column(db.String(64), nullable=False, unique=True)
 	address = db.Column(db.String(128), nullable=False)
@@ -19,11 +34,11 @@ class Club(db.Model):
 		return f'{self.address} {self.zip_code} {self.city}'
 
 
-class Team(db.Model):
+class Team(db.Model, Model):
 	__table_args__ = (db.UniqueConstraint('suffix', 'stam_number'),
 					  db.CheckConstraint('id > 0'))
 	id = db.Column(db.Integer(), db.Sequence('team_id_seq', start=71, increment=1), primary_key=True)
-	stam_number = db.Column(db.Integer(), db.ForeignKey('club.stam_number'), nullable=False)
+	stam_number = db.Column(db.Integer(), db.ForeignKey('club.stam_number', ondelete='cascade'), nullable=False)
 	suffix = db.Column(db.String(32))
 	colors = db.Column(db.String(128), nullable=False)
 
@@ -106,11 +121,9 @@ class Team(db.Model):
 			Match.date).all()
 
 
-class Division(db.Model):
+class Division(db.Model, Model):
 	id = db.Column(db.Integer(), db.Sequence('division_id_seq', start=7, increment=1), primary_key=True)
 	name = db.Column(db.String(64), nullable=False, unique=True)
-
-	matches = db.relationship('Match', lazy="dynamic")
 
 	@staticmethod
 	def divisions_in_season(a, b):
@@ -184,7 +197,7 @@ class Division(db.Model):
 		return Team.query.get(id), int(count)
 
 
-class Match(db.Model):
+class Match(db.Model, Model):
 	__table_args__ = (db.UniqueConstraint('date', 'home_team_id', 'away_team_id'),
 					  db.CheckConstraint('home_team_id != away_team_id'),
 					  db.CheckConstraint('matchweek > 0'),
@@ -204,7 +217,7 @@ class Match(db.Model):
 	goals_home_team = db.Column(db.Integer())  # TODO null??
 	goals_away_team = db.Column(db.Integer())
 	status = db.Column(db.Enum('Postponed', 'Canceled', 'Forfait', name='match_status'))
-	referee_id = db.Column(db.Integer(), db.ForeignKey('referee.id'))
+	referee_id = db.Column(db.Integer(), db.ForeignKey('referee.id', ondelete='set null'))
 
 	home_team = db.relationship('Team', foreign_keys=[home_team_id])
 	away_team = db.relationship('Team', foreign_keys=[away_team_id])
@@ -245,7 +258,7 @@ class Match(db.Model):
 		return 'D'
 
 
-class Referee(db.Model):
+class Referee(db.Model, Model):
 	__table_args__ = (db.UniqueConstraint('first_name', 'last_name', 'date_of_birth'),)
 	id = db.Column(db.Integer(), primary_key=True)
 	first_name = db.Column(db.String(64), nullable=False)
@@ -258,12 +271,12 @@ class Referee(db.Model):
 	date_of_birth = db.Column(db.Date(), nullable=False)
 
 
-class User(db.Model):
+class User(db.Model, Model):
 	id = db.Column(db.Integer(), primary_key=True)
 	username = db.Column(db.String(64), nullable=False, unique=True)
 	password_hash = db.Column(db.String(128), nullable=False)
 	email = db.Column(db.String(128), nullable=False)
-	team_id = db.Column(db.Integer(), db.ForeignKey('team.id'))
+	team_id = db.Column(db.Integer(), db.ForeignKey('team.id', ondelete='set null'))
 	is_admin = db.Column(db.Boolean(), nullable=False)
 	is_super_admin = db.Column(db.Boolean(), nullable=False)
 
