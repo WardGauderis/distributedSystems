@@ -13,7 +13,7 @@ from . import auth
 class Config:
 	SQLALCHEMY_DATABASE_URI = environ.get("DATABASE_URI")
 	SQLALCHEMY_TRACK_MODIFICATIONS = False
-	SECRET_KEY='LiefhebbersVoetbalLiga'
+	SECRET_KEY = 'LiefhebbersVoetbalLiga'
 
 
 def create_app() -> Flask:

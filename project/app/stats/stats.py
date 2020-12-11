@@ -8,9 +8,6 @@ from . import bp
 
 
 def get_season_start_and_end(season, past=True):
-	# 1: 2018/1 2019/22 09-04 -> 04-24
-	# year - 2017 - week >= 15
-	# 6 : year - 2017 - week >= 17
 	if season <= 0:
 		if past:
 			return date(1, 9, 4), date.today()
@@ -54,7 +51,7 @@ def weather(datum, time, location):
 		return 'Weather/Geolocation service error'
 
 
-@bp.route('/league_table/<int:div>/<int:season>', methods=['GET'])
+@bp.route('/league_tables/<int:div>/<int:season>', methods=['GET'])
 def league_table(div, season):
 	division = Division.query.get(div) or abort(404)
 	a = {}
@@ -117,7 +114,7 @@ def top(season):
 		abort(400)
 
 
-@bp.route('/fixture/<int:id>', methods=['GET'])
+@bp.route('/fixtures/<int:id>', methods=['GET'])
 def fixture(id):
 	match = Match.query.get(id)
 	if not match:
@@ -157,7 +154,7 @@ def fixture(id):
 	return jsonify(result)
 
 
-@bp.route('/team/<int:id>', methods=['GET'])
+@bp.route('/teams/<int:id>', methods=['GET'])
 def team(id):
 	team = Team.query.get(id)
 	if not team:

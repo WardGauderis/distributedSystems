@@ -5,8 +5,6 @@ from sqlalchemy import exc
 from psycopg2 import errorcodes
 
 
-# TODO user: niet wachtwoord, admin, superadmin + specifieke updates plust authorizatie
-
 def handle_error(e, model):
 	code = e.orig.pgcode
 	if code == errorcodes.UNIQUE_VIOLATION:
@@ -51,20 +49,16 @@ def clubs():
 
 @bp.route('/clubs/<int:id>', methods=['GET', 'PUT', 'DELETE'])
 def club(id):
+	club = Club.query.get(id)
+	if not club: abort(404)
+
 	if request.method == 'GET':
-		club = Club.query.get(id)
-		if not club: abort(404)
 		return jsonify(club.serialize())
 	elif request.method == 'DELETE':
-		club = Club.query.get(id)
-		if not club: abort(404)
 		db.session.delete(club)
 		db.session.commit()
 		return ''
 	elif request.method == 'PUT':
-		club = Club.query.get(id)
-		if not club:
-			abort(404)
 		try:
 			club.deserialize(request.get_json(force=True) or {})
 			db.session.add(club)
@@ -82,7 +76,6 @@ def teams():
 	elif request.method == 'POST':
 		team = Team()
 		try:
-			print(request.get_json())
 			team.deserialize(request.get_json(force=True) or {})
 			db.session.add(team)
 			db.session.commit()
@@ -93,20 +86,16 @@ def teams():
 
 @bp.route('/teams/<int:id>', methods=['GET', 'PUT', 'DELETE'])
 def team(id):
+	team = Team.query.get(id)
+	if not team: abort(404)
+
 	if request.method == 'GET':
-		team = Team.query.get(id)
-		if not team: abort(404)
 		return jsonify(team.serialize())
 	elif request.method == 'DELETE':
-		team = Team.query.get(id)
-		if not team: abort(404)
 		db.session.delete(team)
 		db.session.commit()
 		return ''
 	elif request.method == 'PUT':
-		team = Team.query.get(id)
-		if not team:
-			abort(404)
 		try:
 			team.deserialize(request.get_json(force=True) or {})
 			db.session.add(team)
@@ -134,20 +123,16 @@ def divisions():
 
 @bp.route('/divisions/<int:id>', methods=['GET', 'PUT', 'DELETE'])
 def division(id):
+	division = Division.query.get(id)
+	if not division: abort(404)
+
 	if request.method == 'GET':
-		division = Division.query.get(id)
-		if not division: abort(404)
 		return jsonify(division.serialize())
 	elif request.method == 'DELETE':
-		division = Division.query.get(id)
-		if not division: abort(404)
 		db.session.delete(division)
 		db.session.commit()
 		return ''
 	elif request.method == 'PUT':
-		division = Division.query.get(id)
-		if not division:
-			abort(404)
 		try:
 			division.deserialize(request.get_json(force=True) or {})
 			db.session.add(division)
@@ -174,25 +159,32 @@ def matches():
 			handle_error(e, 'match')
 
 
-@bp.route('/matches/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+@bp.route('/matches/<int:id>', methods=['GET', 'PUT', 'DELETE', 'PATCH'])
 def match(id):
+	match = Match.query.get(id)
+	if not match: abort(404)
+
 	if request.method == 'GET':
-		match = Match.query.get(id)
-		if not match: abort(404)
 		return jsonify(match.serialize())
 	elif request.method == 'DELETE':
-		match = Match.query.get(id)
-		if not match: abort(404)
 		db.session.delete(match)
 		db.session.commit()
 		return ''
 	elif request.method == 'PUT':
-		match = Match.query.get(id)
-		if not match:
-			abort(404)
 		try:
 			match.deserialize(request.get_json(force=True) or {})
 			db.session.add(match)
+			db.session.commit()
+			return ''
+		except exc.StatementError as e:
+			handle_error(e, 'match')
+	elif request.method == 'PATCH':
+		try:
+			json = request.get_json(force=True) or {}
+			if 'goals_home_team' in json:
+				match.goals_home_team = json['goals_home_team']
+			if 'goals_away_team' in json:
+				match.goals_home_team = json['goals_away_team']
 			db.session.commit()
 			return ''
 		except exc.StatementError as e:
@@ -217,20 +209,16 @@ def referees():
 
 @bp.route('/referees/<int:id>', methods=['GET', 'PUT', 'DELETE'])
 def referee(id):
+	referee = Referee.query.get(id)
+	if not referee: abort(404)
+
 	if request.method == 'GET':
-		referee = Referee.query.get(id)
-		if not referee: abort(404)
 		return jsonify(referee.serialize())
 	elif request.method == 'DELETE':
-		referee = Referee.query.get(id)
-		if not referee: abort(404)
 		db.session.delete(referee)
 		db.session.commit()
 		return ''
 	elif request.method == 'PUT':
-		referee = Referee.query.get(id)
-		if not referee:
-			abort(404)
 		try:
 			referee.deserialize(request.get_json(force=True) or {})
 			db.session.add(referee)
@@ -258,20 +246,16 @@ def users():
 
 @bp.route('/users/<int:id>', methods=['GET', 'PUT', 'DELETE'])
 def user(id):
+	user = User.query.get(id)
+	if not user: abort(404)
+
 	if request.method == 'GET':
-		user = User.query.get(id)
-		if not user: abort(404)
 		return jsonify(user.serialize())
 	elif request.method == 'DELETE':
-		user = User.query.get(id)
-		if not user: abort(404)
 		db.session.delete(user)
 		db.session.commit()
 		return ''
 	elif request.method == 'PUT':
-		user = User.query.get(id)
-		if not user:
-			abort(404)
 		try:
 			user.deserialize(request.get_json(force=True) or {})
 			db.session.add(user)
@@ -279,3 +263,15 @@ def user(id):
 			return ''
 		except exc.StatementError as e:
 			handle_error(e, 'user')
+
+
+@bp.route('/admins/<int:id>', methods=['POST', 'DELETE'])
+def admins(id):
+	user = User.query.get(id)
+	if not user: abort(404)
+	if request.method == 'POST':
+		user.is_admin = True
+	elif request.method == 'DELETE':
+		user.is_admin = False
+	db.session.commit()
+	return ''

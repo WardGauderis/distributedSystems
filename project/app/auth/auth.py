@@ -2,6 +2,7 @@ from base64 import b64decode
 
 import jwt
 from flask import request, abort, current_app
+import requests
 
 from app.general.models import User
 from . import bp
@@ -25,7 +26,6 @@ def login():
 @bp.route('/check_auth', methods=['GET'])
 def authorize():
 	try:
-		return '', 200
 		value = request.headers['Authorization']
 		scheme, token = value.split(None, 1)
 		data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
@@ -34,9 +34,25 @@ def authorize():
 		method = request.headers['X-Original-Method']
 		uri = request.headers['X-Original-Uri']
 
-		# abort(403)
-		return '', 200
+		admin = user.is_admin
+		super_admin = user.is_super_admin
+		allowed = False
+
+		if '/admins/' in uri:
+			allowed = super_admin
+		elif admin or super_admin:
+			allowed = True
+		elif '/matches/' in uri and method == 'PATCH':
+			allowed = int(requests.get('http://crud:5000' + uri[9:]).json()['home_team_id']) == user.team_id
+		elif '/clubs/' in uri and method == 'PUT':
+			allowed = int(requests.get('http://crud:5000' + uri[9:]).json()['stam_number']) == user.team_id
+
+		if allowed:
+			return ''
+		else:
+			abort(403)
 	except:
+		raise
 		pass
 	abort(401)
 

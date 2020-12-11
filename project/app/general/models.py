@@ -6,6 +6,7 @@ from flask import current_app
 
 
 class Model:
+	forbidden = ['_sa_instance_state', '__table_args__', 'id']
 	def serialize(self):
 		map = dict(vars(self))
 		map.pop('_sa_instance_state')
@@ -13,11 +14,12 @@ class Model:
 
 	def deserialize(self, map):
 		for key, value in map.items():
-			if hasattr(self, key) and key not in ['_sa_instance_state', '__table_args__', 'id']:
+			if hasattr(self, key) and key not in self.forbidden:
 				setattr(self, key, value)
 
 
 class Club(db.Model, Model):
+	forbidden = Model.forbidden + ['stam_number']
 	stam_number = db.Column(db.Integer(), db.Sequence('club_stam_number_seq', start=333, increment=1), primary_key=True)
 	name = db.Column(db.String(64), nullable=False, unique=True)
 	address = db.Column(db.String(128), nullable=False)
@@ -30,6 +32,7 @@ class Club(db.Model, Model):
 
 
 class Team(db.Model, Model):
+	forbidden = Model.forbidden + ['club']
 	__table_args__ = (db.UniqueConstraint('suffix', 'stam_number'),
 					  db.CheckConstraint('id > 0'))
 	id = db.Column(db.Integer(), db.Sequence('team_id_seq', start=72, increment=1), primary_key=True)
@@ -39,10 +42,8 @@ class Team(db.Model, Model):
 
 	club = db.relationship('Club')
 
-	def serialize(self):
-		map = dict(vars(self))
-		map.pop('_sa_instance_state')
-		map = {k: str(v) for k, v in map.items() if v is not None and k not in ['club']}
+	def seriserialize(self):
+		map = Model.serialize(self)
 		map['name'] = self.name()
 		return map
 
@@ -200,12 +201,13 @@ class Division(db.Model, Model):
 
 
 class Match(db.Model, Model):
+	forbidden = Model.forbidden + ['home_team', 'away_team', 'referee']
 	__table_args__ = (db.UniqueConstraint('date', 'home_team_id', 'away_team_id'),
 					  db.CheckConstraint('home_team_id != away_team_id'),
 					  db.CheckConstraint('matchweek > 0'),
 					  db.CheckConstraint('goals_home_team >= 0 and goals_away_team >= 0'),
-					  db.CheckConstraint('goals_home_team is null and goals_away_team is null or goals_home_team is '
-										 'not null and goals_away_team is not null'),
+					  db.CheckConstraint('(goals_home_team is null and goals_away_team is null) or (goals_home_team is '
+										 'not null and goals_away_team is not null)'),
 					  db.UniqueConstraint('referee_id', 'date'),
 					  db.UniqueConstraint('home_team_id', 'date'),
 					  db.UniqueConstraint('away_team_id', 'date'))
@@ -226,9 +228,7 @@ class Match(db.Model, Model):
 	referee = db.relationship('Referee')
 
 	def serialize(self):
-		map = dict(vars(self))
-		map.pop('_sa_instance_state')
-		map = {k: str(v) for k, v in map.items() if v is not None and k not in['home_team', 'away_team']}
+		map = Model.serialize(self)
 		map['home_team_name'] = self.home_team.name()
 		map['away_team_name'] = self.away_team.name()
 		return map
@@ -282,6 +282,7 @@ class Referee(db.Model, Model):
 
 
 class User(db.Model, Model):
+	forbidden = Model.forbidden + ['team', 'is_super_admin', 'password_hash']
 	id = db.Column(db.Integer(), primary_key=True)
 	username = db.Column(db.String(64), nullable=False, unique=True)
 	password_hash = db.Column(db.String(128), nullable=False)
@@ -291,6 +292,11 @@ class User(db.Model, Model):
 	is_super_admin = db.Column(db.Boolean(), nullable=False)
 
 	team = db.relationship('Team')
+
+	def deserialize(self, map: dict):
+		Model.deserialize(self, map)
+		if 'password' in map:
+			self.set_password(map['password'])
 
 	def set_password(self, password):
 		self.password_hash = generate_password_hash(password)
