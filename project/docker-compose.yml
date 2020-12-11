@@ -70,7 +70,6 @@ services:
       - FLASK_ENV=development
     volumes:
       - './app/frontend:/usr/src/app/service'
-      - './app/general:/usr/src/app/general'
     expose:
       - 5000
     depends_on:
