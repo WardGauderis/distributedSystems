@@ -39,6 +39,13 @@ class Team(db.Model, Model):
 
 	club = db.relationship('Club')
 
+	def serialize(self):
+		map = dict(vars(self))
+		map.pop('_sa_instance_state')
+		map = {k: str(v) for k, v in map.items() if v is not None and k not in ['club']}
+		map['name'] = self.name()
+		return map
+
 	def name(self):
 		if self.suffix:
 			return self.club.name + ' ' + self.suffix
@@ -147,7 +154,7 @@ class Division(db.Model, Model):
 			f'group by goals.id '
 			f'order by sum(goals.sum) desc '
 			f'limit 1;').fetchone() or (None, 0)
-		return Team.query.get(id), int(goals)
+		return Team.query.get(id), int(goals or 0)
 
 	def best_defence(self, a, b):
 		id, goals = db.engine.execute(
@@ -167,7 +174,7 @@ class Division(db.Model, Model):
 			f'group by goals.id '
 			f'order by sum(goals.sum) '
 			f'limit 1;').fetchone() or (None, 0)
-		return Team.query.get(id), int(goals)
+		return Team.query.get(id), int(goals or 0)
 
 	def most_clean_sheets(self, a, b):
 		id, count = db.engine.execute(
@@ -189,7 +196,7 @@ class Division(db.Model, Model):
 			f'group by clean_sheets.id '
 			f'order by sum(clean_sheets.count) desc '
 			f'limit 1;').fetchone() or (None, 0)
-		return Team.query.get(id), int(count)
+		return Team.query.get(id), int(count or 0)
 
 
 class Match(db.Model, Model):
@@ -217,6 +224,14 @@ class Match(db.Model, Model):
 	home_team = db.relationship('Team', foreign_keys=[home_team_id])
 	away_team = db.relationship('Team', foreign_keys=[away_team_id])
 	referee = db.relationship('Referee')
+
+	def serialize(self):
+		map = dict(vars(self))
+		map.pop('_sa_instance_state')
+		map = {k: str(v) for k, v in map.items() if v is not None and k not in['home_team', 'away_team']}
+		map['home_team_name'] = self.home_team.name()
+		map['away_team_name'] = self.away_team.name()
+		return map
 
 	def history(self, a, b):
 		count = db.engine.execute(

@@ -57,12 +57,13 @@ def weather(datum, time, location):
 @bp.route('/league_table/<int:div>/<int:season>', methods=['GET'])
 def league_table(div, season):
 	division = Division.query.get(div) or abort(404)
+	a = {}
+	a.update()
 	try:
 		a, b = get_season_start_and_end(season)
 		teams = division.teams(a, b)
 		result = [{
-			'id': team.id,
-			'name': team.name(),
+			'team': team.serialize(),
 			'played': team.played(division, a, b),
 			'won': team.won(division, a, b),
 			'drawn': team.drawn(division, a, b),
@@ -89,20 +90,7 @@ def fixtures(div, team, season, week):
 		if week:
 			query = query.filter(Match.matchweek == week)
 		matches = query.order_by(Match.date).all()
-		result = []
-		for match in matches:
-			result.append({
-				'id': match.id,
-				'home_team_id': match.home_team_id,
-				'away_team_id': match.away_team_id,
-				'home_team_name': match.home_team.name(),
-				'away_team_name': match.away_team.name(),
-				'date': str(match.date),
-				'time': str(match.time)
-			})
-			if match.status is not None:
-				result[len(result) - 1]['status'] = match.status
-		return jsonify(result)
+		return jsonify([match.serialize() for match in matches])
 	except:
 		abort(400)
 
@@ -117,23 +105,15 @@ def top(season):
 			defense, ga = division.best_defence(a, b)
 			sheets, count = division.most_clean_sheets(a, b)
 			result.append({
-				'division_id': division.id,
-				'division_name': division.name,
-				'best_attack': {
-					'team_id': attack.id,
-					'team_name': attack.name(),
-					'GF': gf},
-				'best_defence': {
-					'team_id': defense.id,
-					'team_name': defense.name(),
-					'GA': ga},
-				'most_clean_sheets': {
-					'team_id': sheets.id,
-					'team_name': sheets.name(),
-					'count': count}
+				**division.serialize(), **{
+					'best_attack': {**attack.serialize(), **{'GF': gf}},
+					'best_defence': {**defense.serialize(), **{'GA': ga}},
+					'most_clean_sheets': {**sheets.serialize(), **{'count': count}}
+				}
 			})
 		return jsonify(result)
 	except:
+		raise
 		abort(400)
 
 
@@ -142,14 +122,7 @@ def fixture(id):
 	match = Match.query.get(id)
 	if not match:
 		abort(404)
-	result = {
-		'home_team_id': match.home_team_id,
-		'away_team_id': match.away_team_id,
-		'home_team_name': match.home_team.name(),
-		'away_team_name': match.away_team.name(),
-		'date': str(match.date),
-		'time': str(match.time)
-	}
+	result = match.serialize()
 	if match.referee:
 		result['referee_first_name'] = match.referee.first_name
 		result['referee_last_name'] = match.referee.last_name
@@ -164,13 +137,7 @@ def fixture(id):
 
 		result['recent_matches'] = []
 		for recent_match in match.recent(a, b):
-			result['recent_matches'].append({
-				'id': recent_match.id,
-				'home_team_id': recent_match.home_team_id,
-				'away_team_id': recent_match.away_team_id,
-				'goals_home_team': recent_match.goals_home_team,
-				'goalse_away_team': recent_match.goals_away_team
-			})
+			result['recent_matches'].append(recent_match.serialize())
 
 		result['recent_matches_home_team'] = []
 		for home_team_match in match.home_team.recent(b, 5):
@@ -184,9 +151,6 @@ def fixture(id):
 				'id': away_team_match.id,
 				'result': away_team_match.result(match.away_team)
 			})
-	elif match.goals_home_team is not None:
-		result['goals_home_team'] = match.goals_home_team
-		result['goals_away_team'] = match.goals_away_team
 	if date.today() <= match.date <= date.today() + timedelta(days=7):
 		result['weather'] = weather(match.date, match.time, match.home_team.club.location())
 
@@ -198,26 +162,7 @@ def team(id):
 	team = Team.query.get(id)
 	if not team:
 		abort(404)
-	result = {
-		'id': team.id,
-		'colors': team.colors,
-		'club_name': team.club.name,
-		'stam_number': team.club.stam_number,
-		'recent_matches': [{
-			'id': match.id,
-			'home_team_id': match.home_team_id,
-			'away_team_id': match.away_team_id,
-			'goals_home_team': match.goals_home_team,
-			'goalse_away_team': match.goals_away_team,
-			'date': str(match.date)
-		} for match in team.recent(date.today(), 3)],
-		'future_matches': [{
-			'id': match.id,
-			'home_team_id': match.home_team_id,
-			'away_team_id': match.away_team_id,
-			'date': str(match.date)
-		} for match in team.future(date.today())]
-	}
-	if team.suffix:
-		result['suffix'] = team.suffix
+	result = team.serialize()
+	result['recent_matches'] = [match.serialize() for match in team.recent(date.today(), 3)]
+	result['future_matches'] = [match.serialize() for match in team.future(date.today())]
 	return jsonify(result)

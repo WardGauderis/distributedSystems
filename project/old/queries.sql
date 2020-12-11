@@ -98,5 +98,6 @@ order by date desc;
 
 select *
 from match
-where division_id = 1 and date > now()
-order by date asc ;
+where division_id = 1
+  and date > now()
+order by date asc;
