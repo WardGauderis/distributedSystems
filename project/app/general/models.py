@@ -3,10 +3,12 @@ from datetime import datetime, timedelta
 from app.service import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import current_app
+from datetime import date
 
 
 class Model:
 	forbidden = ['_sa_instance_state', '__table_args__', 'id']
+
 	def serialize(self):
 		map = dict(vars(self))
 		map.pop('_sa_instance_state')
@@ -42,7 +44,7 @@ class Team(db.Model, Model):
 
 	club = db.relationship('Club')
 
-	def seriserialize(self):
+	def serialize(self):
 		map = Model.serialize(self)
 		map['name'] = self.name()
 		return map
@@ -310,3 +312,18 @@ class User(db.Model, Model):
 			current_app.config['SECRET_KEY'],
 			algorithm='HS256',
 		).decode('utf-8')
+
+
+def get_season_start_and_end(season, past=True):
+	if season <= 0:
+		if past:
+			return date(1, 9, 4), date.today()
+		else:
+			return date.today(), date(3000, 1, 1)
+	if not past:
+		return date(season, 9, 1), date(season + 1, 4, 30)
+	return date(season, 9, 1), min(date(season + 1, 4, 30), date.today())
+
+
+def get_season(datum: date):
+	return datum.year - (datum < date(datum.year, 4, 30))

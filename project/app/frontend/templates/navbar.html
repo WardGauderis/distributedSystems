@@ -1,7 +1,7 @@
 <nav class="navbar is-spaced has-shadow">
     <div class="container">
         <div class="navbar-brand">
-            <a class="navbar-item is-size-5 has-text-primary">
+            <a class="navbar-item is-size-5 has-text-primary" href="{{ url_for('frontend.index') }}">
                 <strong>Liefhebbers Voetbal Liga</strong>
             </a>
             <a class="navbar-burger">
@@ -11,7 +11,7 @@
             </a>
         </div>
 
-        <div class="navbar-menu">
+        <div class="navbar-menu">   {# TODO divisions, a #}
             <div class="navbar-start">
                 <div class="navbar-item has-dropdown is-hoverable">
                     <a class="navbar-link is-arrowless">

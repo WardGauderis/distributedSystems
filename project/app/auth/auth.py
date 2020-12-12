@@ -26,13 +26,15 @@ def login():
 @bp.route('/check_auth', methods=['GET'])
 def authorize():
 	try:
+		method = request.headers['X-Original-Method']
+		uri = request.headers['X-Original-Uri']
+		if method == 'GET' and not uri.startswith('/api/crud/users/'):
+			return ''
+
 		value = request.headers['Authorization']
 		scheme, token = value.split(None, 1)
 		data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
-
 		user = User.query.get(data['id'])
-		method = request.headers['X-Original-Method']
-		uri = request.headers['X-Original-Uri']
 
 		admin = user.is_admin
 		super_admin = user.is_super_admin
@@ -42,9 +44,9 @@ def authorize():
 			allowed = super_admin
 		elif admin or super_admin:
 			allowed = True
-		elif '/matches/' in uri and method == 'PATCH':
+		elif uri.startswith('/api/crud/matches/') and method == 'PATCH':  # TODO check
 			allowed = int(requests.get('http://crud:5000' + uri[9:]).json()['home_team_id']) == user.team_id
-		elif '/clubs/' in uri and method == 'PUT':
+		elif uri.startswith('/api/crud/clubs/') and method == 'PUT':
 			allowed = int(requests.get('http://crud:5000' + uri[9:]).json()['stam_number']) == user.team_id
 
 		if allowed:

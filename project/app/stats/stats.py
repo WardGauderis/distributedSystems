@@ -1,23 +1,10 @@
-import requests
 from datetime import date, datetime, timedelta
 
+import requests
 from flask import jsonify, abort
 
-from app.general.models import Division, Match, Team
+from app.general.models import Division, Match, Team, get_season, get_season_start_and_end
 from . import bp
-
-
-def get_season_start_and_end(season, past=True):
-	if season <= 0:
-		if past:
-			return date(1, 9, 4), date.today()
-		else:
-			return date.today(), date(3000, 1, 1)
-	return date(season, 9, 1), min(date(season + 1, 4, 30), date.today())
-
-
-def get_season(datum: date):
-	return datum.year - (datum < date(datum.year, 4, 30))
 
 
 def weather(datum, time, location):
@@ -71,22 +58,21 @@ def league_table(div, season):
 			'points': team.points(division, a, b)
 		} for team in teams]
 		result.sort(key=lambda x: x['points'], reverse=True)
-		print(result)
+		for i in range(len(result)):
+			result[i]['pos'] = i + 1
 		return jsonify(result)
 	except:
 		abort(400)
 
 
-@bp.route('/fixtures/<int:div>/<int:team>/<int:season>/<int:week>', methods=['GET'])
-def fixtures(div, team, season, week):
+@bp.route('/fixtures/<int:div>/<int:team>/<int:season>', methods=['GET'])
+def fixtures(div, team, season):
 	try:
 		a, b = get_season_start_and_end(season, False)
 		query = Match.query.filter(Match.division_id == div).filter(Match.date >= a, Match.date < b)
 		if team:
 			query = query.filter(Match.home_team_id == team or Match.away_team_id == team)
-		if week:
-			query = query.filter(Match.matchweek == week)
-		matches = query.order_by(Match.date).all()
+		matches = query.order_by(Match.date, Match.time).all()
 		return jsonify([match.serialize() for match in matches])
 	except:
 		abort(400)

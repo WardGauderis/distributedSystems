@@ -71,7 +71,8 @@ def club(id):
 @bp.route('/teams', methods=['GET', 'POST'])
 def teams():
 	if request.method == 'GET':
-		teams = [team.serialize() for team in Team.query.all()]
+		teams = [team.serialize() for team in
+				 Team.query.join(Club, Club.stam_number == Team.stam_number).order_by(Club.name, Team.suffix).all()]
 		return jsonify(teams)
 	elif request.method == 'POST':
 		team = Team()
@@ -275,3 +276,16 @@ def admins(id):
 		user.is_admin = False
 	db.session.commit()
 	return ''
+
+
+@bp.route('/seasons', methods=['GET'])
+def seasons():
+	try:
+		first = Match.query.order_by(Match.date).limit(1).one_or_none().date
+		last = Match.query.order_by(Match.date.desc()).limit(1).one_or_none().date
+		first = get_season(first)
+		last = get_season(last)
+
+		return jsonify([i for i in range(first, last + 1)])
+	except:
+		return jsonify([])

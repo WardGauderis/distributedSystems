@@ -95,9 +95,3 @@ order by date desc;
 -- from match
 -- where date = to_date('2018-09-05', 'YYYY-MM-DD')
 --   and home_team_id = 33;
-
-select *
-from match
-where division_id = 1
-  and date > now()
-order by date asc;

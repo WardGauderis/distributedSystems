@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {{ division.name }}
+{% endblock %}
+
+{% block script %}
+    <script>
+        function updateAction() {
+            var season = $("select[name=season]").val()
+            var team = $("select[name=team]").val()
+            window.location.replace("/divisions/{{ division.id }}/" + team + "/" + season)
+        }
+    </script>
+{% endblock %}
+
+{% block content %}
+    <section class="section">
+        <div class="container">
+            <div class="level">
+                <h1 class="title has-text-primary level-left mb-0">{{ division.name }}</h1>
+                <div class="select level-right">
+                    <label>
+                        <select name='season' onchange="updateAction()">
+                            <option value="0" {% if season == 0 %}selected{% endif %}>All Time</option>
+                            {% for s in seasons %}
+                                <option value="{{ s }}" {% if season == s %}selected{% endif %}>
+                                    Season {{ s }}-{{ s + 1 }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                </div>
+
+            </div>
+            <hr>
+
+            <table class="table is-hoverable is-fullwidth">
+                <thead>
+                <tr>
+                    <th><abbr title="Position">Pos</abbr></th>
+                    <th>Team</th>
+                    <th><abbr title="Played">Pld</abbr></th>
+                    <th><abbr title="Won">W</abbr></th>
+                    <th><abbr title="Drawn">D</abbr></th>
+                    <th><abbr title="Lost">L</abbr></th>
+                    <th><abbr title="Goals for">GF</abbr></th>
+                    <th><abbr title="Goals against">GA</abbr></th>
+                    <th><abbr title="Goal difference">GD</abbr></th>
+                    <th><abbr title="Points">Pts</abbr></th>
+                </tr>
+                </thead>
+                <tfoot>
+                <tr>
+                    <th><abbr title="Position">Pos</abbr></th>
+                    <th>Team</th>
+                    <th><abbr title="Played">Pld</abbr></th>
+                    <th><abbr title="Won">W</abbr></th>
+                    <th><abbr title="Drawn">D</abbr></th>
+                    <th><abbr title="Lost">L</abbr></th>
+                    <th><abbr title="Goals for">GF</abbr></th>
+                    <th><abbr title="Goals against">GA</abbr></th>
+                    <th><abbr title="Goal difference">GD</abbr></th>
+                    <th><abbr title="Points">Pts</abbr></th>
+                </tr>
+                </tfoot>
+                <tbody>
+                {% for team in table %}
+                    <tr>
+                        <th>{{ team.pos }}</th>
+                        <td><a href="{{ url_for('frontend.teams', id=team.team.id) }}">{{ team.team.name }}</a>
+                        </td>
+                        <td>{{ team.played }}</td>
+                        <td>{{ team.won }}</td>
+                        <td>{{ team.drawn }}</td>
+                        <td>{{ team.lost }}</td>
+                        <td>{{ team.GF }}</td>
+                        <td>{{ team.GA }}</td>
+                        <td>{{ team.GD }}</td>
+                        <td>{{ team.points }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="level mb-5">
+                <h2 class="subtitle is-3 has-text-primary level-left mb-0">{% if season == 0%}Future {% endif %}Fixtures</h2>
+                <div class="select level-right">
+                    <label>
+                        <select name="team" onchange="updateAction()">
+                            <option value="0" {% if team == 0 %}selected{% endif %}>All Teams</option>
+                            {% for t in table %}
+                                <option value="{{ t.team.id }}" {% if team == t.team.id %}selected{% endif %}>{{ t.team.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                </div>
+            </div>
+
+            {% for week, fixtures in fixtures.items() %}
+                <div class="block">
+                    <h3 class="subtitle is-info"><strong>Week {{ week }}</strong></h3>
+                    <hr class="my-1">
+                    {% for fixture in fixtures %}
+                        <div class="level mb-0">    {# TODO linnk #}
+                            <div class="level-left" style="flex-grow: 1; flex-basis: 0;">
+                                <div class="level-item">
+                                    {{ fixture.date }}
+                                </div>
+                                <div class="level-item">
+                                    {{ fixture.time }}
+                                </div>
+                            </div>
+                            <div class="level-item has-text-weight-bold"
+                                 style="flex-basis: 0;">{{ fixture.home_team_name }}</div>
+                            <div class="level-item" style="flex-basis: 0">-</div>
+                            <div class="level-item has-text-weight-bold"
+                                 style="flex-basis: 0;">{{ fixture.away_team_name }}</div>
+                            <div class="level-right" style="flex-grow: 1; flex-basis: 0">
+                                {% if fixture.status %}
+                                    <div class="level-item">
+                                        {{ fixture.status }}
+                                    </div>
+                                {% endif %}
+                                {% if fixture.goals_home_team %}
+                                    <div class="level-item has-text-weight-bold">
+                                        {{ fixture.goals_home_team }} - {{ fixture.goals_away_team }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <hr class="my-1">
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+{% endblock %}

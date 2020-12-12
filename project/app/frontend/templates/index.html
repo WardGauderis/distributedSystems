@@ -13,6 +13,10 @@
             background-position: center;
             background-attachment: fixed;
         }
+
+        .level-item {
+            flex-basis: 0;
+        }
     </style>
 
     <section class="hero is-fullheight-with-navbar">
@@ -26,40 +30,61 @@
     </section>
     <section class="section">
         <div class="container">
-            hallo<br>
-            hallo<br>
-            hallo<br>
-            hallo<br>
-            hallo<br>
-            hallo<br>
-            hallo<br>
-            hallo<br>
-            hallo<br>
-            hallo<br>
-            hallo<br>
-            hallo<br>
-            hallo<br>
-            hallo<br>
-            hallo<br>
-            hallo<br>
-            hallo<br>
-            hallo<br>
-            hallo<br>
-            hallo<br>
-            hallo<br>
-            hallo<br>
-            hallo<br>
-            hallo<br>
-            hallo<br>
-            hallo<br>
-            hallo<br>
-            hallo<br>
-            hallo<br>
-            hallo<br>
-            hallo<br>
-            hallo<br>
-            hallo<br>
-            hallo<br>
+            <div class="level">
+                <h1 class="title has-text-primary level-left mb-0">Highlighted Teams {% if season == 0 %}All
+                    Time{% else %}Season {{ season }}-{{ season + 1 }}{% endif %}</h1>
+                <div class="dropdown is-hoverable is-right level-right">
+                    <div class="dropdown-trigger">
+                        <button class="button">
+                            <span>Season</span>
+                            <span class="icon is-small"><i class="fas fa-angle-down"></i></span>
+                        </button>
+                    </div>
+                    <div class="dropdown-menu">
+                        <div class="dropdown-content">
+                            <a class="dropdown-item" href="{{ url_for('frontend.index') }}">All Time</a>
+                            {% for season in seasons %}
+                                <a class="dropdown-item"
+                                   href="{{ url_for('frontend.index', season=season) }}">Season {{ season }}</a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <hr>
+
+            {% for div in stats %}
+                <div class="box has-text-centered has-background-white-ter is-radiusless">
+                    <a href="{{ url_for('frontend.divisions', div=div.id, team=0, season=season, week=0) }}"><h1
+                            class="title is-4 mb-3">{{ div.name }}</h1></a>
+                    <div class="level">
+                        <div class="level-item">
+                            <div>
+                                <p class="tag is-danger">Best Attack</p><br>
+                                <a href="{{ url_for('frontend.teams', id=div.best_attack.id) }}"
+                                   class="subtitle is-4">{{ div.best_attack.name }}</a>
+                                <p class="is-size-7">{{ div.best_attack.GF }} GF</p>
+                            </div>
+                        </div>
+                        <div class="level-item">
+                            <div>
+                                <p class="tag is-success">Best Defense</p><br>
+                                <a href="{{ url_for('frontend.teams', id=div.best_attack.id) }}"
+                                   class="subtitle is-4">{{ div.best_defence.name }}</a>
+                                <p class="is-size-7">{{ div.best_defence.GA }} GA</p>
+                            </div>
+                        </div>
+                        <div class="level-item">
+                            <div>
+                                <p class="tag is-info">Most Clean Sheets</p><br>
+                                <a href="{{ url_for('frontend.teams', id=div.best_attack.id) }}"
+                                   class="subtitle is-4">{{ div.most_clean_sheets.name }}</a>
+                                <p class="is-size-7">{{ div.most_clean_sheets.count }} clean sheet(s)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
         </div>
     </section>
 {% endblock %}
