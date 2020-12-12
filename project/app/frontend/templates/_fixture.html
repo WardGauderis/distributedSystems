@@ -1,0 +1,28 @@
+<hr class="my-1">
+<div class="level mb-0">    {# TODO linnk #}
+    <div class="level-left" style="flex-grow: 1; flex-basis: 0;">
+        <div class="level-item">
+            {{ fixture.date }}
+        </div>
+        <div class="level-item">
+            {{ fixture.time }}
+        </div>
+    </div>
+    <div class="level-item has-text-weight-bold"
+         style="flex-basis: 0;">{{ fixture.home_team_name }}</div>
+    <div class="level-item" style="flex-basis: 0">-</div>
+    <div class="level-item has-text-weight-bold"
+         style="flex-basis: 0;">{{ fixture.away_team_name }}</div>
+    <div class="level-right" style="flex-grow: 1; flex-basis: 0">
+        {% if fixture.status %}
+            <div class="level-item">
+                {{ fixture.status }}
+            </div>
+        {% endif %}
+        {% if fixture.goals_home_team %}
+            <div class="level-item has-text-weight-bold">
+                {{ fixture.goals_home_team }} - {{ fixture.goals_away_team }}
+            </div>
+        {% endif %}
+    </div>
+</div>

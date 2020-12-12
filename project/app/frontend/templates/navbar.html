@@ -11,22 +11,18 @@
             </a>
         </div>
 
-        <div class="navbar-menu">   {# TODO divisions, a #}
+        <div class="navbar-menu">   {# TODO a #}
             <div class="navbar-start">
                 <div class="navbar-item has-dropdown is-hoverable">
                     <a class="navbar-link is-arrowless">
                         Divisions
                     </a>
                     <div class="navbar-dropdown">
-                        <a class="navbar-item">
-                            Division 1
+                        {% for division in divisions %}
+                        <a class="navbar-item" href="{{ url_for('frontend.divisions', div=division.id, team=0, season=0) }}">
+                            {{ division.name }}
                         </a>
-                        <a class="navbar-item">
-                            Division 2
-                        </a>
-                        <a class="navbar-item">
-                            Division 3
-                        </a>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
