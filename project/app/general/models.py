@@ -314,16 +314,16 @@ class User(db.Model, Model):
 		).decode('utf-8')
 
 
+def get_season(datum: date):
+	return datum.year - (datum < date(datum.year, 4, 30))
+
+
 def get_season_start_and_end(season, past=True):
 	if season <= 0:
 		if past:
 			return date(1, 9, 4), date.today()
 		else:
-			return date.today(), date(3000, 1, 1)
+			return date.today(), date(get_season(date.today()) + 1, 4, 30)
 	if not past:
 		return date(season, 9, 1), date(season + 1, 4, 30)
 	return date(season, 9, 1), min(date(season + 1, 4, 30), date.today())
-
-
-def get_season(datum: date):
-	return datum.year - (datum < date(datum.year, 4, 30))

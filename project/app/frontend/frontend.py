@@ -26,7 +26,7 @@ def index(season):
 def divisions(div, team, season):
 	print(request.args)
 	divisions = requests.get(f'http://nginx/api/crud/divisions').json()
-	division = requests.get(f'http://nginx/api/crud/divisions/{div}').json()
+	division = divisions[div - 1]
 	seasons = requests.get(f'http://nginx/api/crud/seasons').json()
 
 	fixtures = requests.get(f'http://nginx/api/stats/fixtures/{div}/{team}/{season}').json()
@@ -41,4 +41,18 @@ def divisions(div, team, season):
 
 @bp.route('/teams/<int:id>', methods=['GET'])
 def teams(id):
-	return ''
+	divisions = requests.get(f'http://nginx/api/crud/divisions').json()
+	team = requests.get(f'http://nginx/api/stats/teams/{id}').json()
+	try:
+		division = divisions[int(team['recent_matches'][0]['division_id']) - 1]['name']
+	except:
+		division = None
+	return render_template('team.html', divisions=divisions, team=team, division=division)
+
+
+@bp.route('/fixtures/<int:id>', methods=['GET'])
+def fixtures(id):
+	divisions = requests.get(f'http://nginx/api/crud/divisions').json()
+	fixture = requests.get(f'http://nginx/api/stats/fixtures/{id}').json()
+	division = divisions[int(fixture['division_id']) - 1]['name']
+	return render_template('fixture.html', divisions=divisions, fixture=fixture, division=division)

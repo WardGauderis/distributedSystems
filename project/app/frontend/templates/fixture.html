@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {{ fixture.home_team_name }} - {{ fixture.away_team_name }}
+{% endblock %}
+
+{% block content %}
+    <section class="section">
+        <div class="container">
+            <div class="level has-text-centered">
+                <div class="level-left">
+                    <a href="{{ url_for('frontend.teams', id=fixture.home_team_id) }}"
+                       class="title has-text-primary">{{ fixture.home_team_name }}</a>
+                </div>
+                {% if fixture.goals_home_team %}
+                    <div class="level-item">
+                        <h1 class="title has-text-{% if fixture.goals_home_team < fixture.goals_away_team %}danger{% elif fixture.goals_home_team > fixture.goals_away_team %}success{% else %}info{% endif %}">{{ fixture.goals_home_team }}</h1>
+                    </div>
+                {% endif %}
+                <div class="level-item">
+                    <h1 class="title has-text-primary">-</h1>
+                </div>
+                {% if fixture.goals_home_team %}
+                    <div class="level-item">
+                        <h1 class="title has-text-{% if fixture.goals_home_team < fixture.goals_away_team %}success{% elif fixture.goals_home_team > fixture.goals_away_team %}danger{% else %}info{% endif %}">{{ fixture.goals_away_team }}</h1>
+                    </div>
+                {% endif %}
+                <div class="level-right">
+                    <h1 href="{{ url_for('frontend.teams', id=fixture.away_team_id) }}"
+                        class="title has-text-primary">{{ fixture.away_team_name }}</h1>
+                </div>
+            </div>
+            <hr>
+
+            <div class="field is-grouped is-grouped-multiline is-justify-content-center">
+                <div class="control">
+                    <div class="tags has-addons are-medium">
+                        <span class="tag is-dark">Location</span>
+                        <span class="tag is-link">{{ fixture.location }}</span>
+                    </div>
+                </div>
+                <div class="control">
+                    <div class="tags has-addons are-medium">
+                        <span class="tag is-dark">Division</span>
+                        <span class="tag is-info">{{ division }}</span>
+                    </div>
+                </div>
+                <div class="control">
+                    <div class="tags has-addons are-medium">
+                        <span class="tag is-dark">Week</span>
+                        <span class="tag is-success">{{ fixture.matchweek }}</span>
+                    </div>
+                </div>
+                <div class="control">
+                    <div class="tags has-addons are-medium">
+                        <span class="tag is-dark">Date</span>
+                        <span class="tag is-info">{{ fixture.date }}</span>
+                    </div>
+                </div>
+                <div class="control">
+                    <div class="tags has-addons are-medium">
+                        <span class="tag is-dark">Kick Off Time</span>
+                        <span class="tag is-primary">{{ fixture.time }}</span>
+                    </div>
+                </div>
+                {% if fixture.referee_first_name %}
+                    <div class="control">
+                        <div class="tags has-addons are-medium">
+                            <span class="tag is-dark">Referee</span>
+                            <span class="tag is-warning">{{ fixture.referee_first_name }} {{ fixture.referee_last_name }}</span>
+                        </div>
+                    </div>
+                {% endif %}
+                {% if fixture.status %}
+                    <div class="control">
+                        <div class="tags has-addons are-medium">
+                            <span class="tag is-dark">Status</span>
+                            <span class="tag is-danger">{{ fixture.status }}</span>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            {% if fixture.weather %}
+                <div class="block mt-3">
+                    <h2 class="subtitle is-3 has-text-primary">Weather</h2>
+                    {% if not fixture.weather.description %}
+                        {{ fixture.weather }}
+                    {% else %}
+                        <figure class="image container is-128x128">
+                            <img src="http://openweathermap.org/img/wn/{{ fixture.weather.icon }}@4x.png" alt=""">
+                        </figure>
+                        <div class="field is-grouped is-grouped-multiline is-justify-content-center">
+                            <div class="control">
+                                <div class="tags has-addons are-medium">
+                                    <span class="tag is-dark">Description</span>
+                                    <span class="tag is-warning">{{ fixture.weather.description }}</span>
+                                </div>
+                            </div>
+                            <div class="control">
+                                <div class="tags has-addons are-medium">
+                                    <span class="tag is-dark">Max</span>
+                                    <span class="tag is-link">{{ fixture.weather.temp_max }} °C</span>
+                                </div>
+                            </div>
+                            <div class="control">
+                                <div class="tags has-addons are-medium">
+                                    <span class="tag is-dark">Min</span>
+                                    <span class="tag is-info">{{ fixture.weather.temp_min }} °C</span>
+                                </div>
+                            </div>
+                            <div class="control">
+                                <div class="tags has-addons are-medium">
+                                    <span class="tag is-dark">Feels like</span>
+                                    <span class="tag is-success">{{ fixture.weather.feels_like }} °C</span>
+                                </div>
+                            </div>
+                            <div class="control">
+                                <div class="tags has-addons are-medium">
+                                    <span class="tag is-dark">Humidity</span>
+                                    <span class="tag is-primary">{{ fixture.weather.humidity }} %</span>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            <style>
+                td {
+                    width: 30%;
+                }
+            </style>
+
+            {% if fixture.recent_matches %}
+                <div class="block mt-3">
+                    <h2 class="subtitle is-3 has-text-primary">Head-to-head</h2>
+                    <table class="table is-hoverable is-fullwidth has-text-centered">
+                        <thead>
+                        <th>
+                            <a href="{{ url_for('frontend.teams', id=fixture.home_team_id) }}">{{ fixture.home_team_name }}</a>
+                        </th>
+                        <th>VS</th>
+                        <th>
+                            <a href="{{ url_for('frontend.teams', id=fixture.away_team_id) }}">{{ fixture.away_team_name }}</a>
+                        </th>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td>{{ fixture.home_team_wins }}</td>
+                            <td>Wins</td>
+                            <td>{{ fixture.away_team_wins }}</td>
+                        </tr>
+                        <tr>
+                            <td>{{ fixture.away_team_wins }}</td>
+                            <td>Losses</td>
+                            <td>{{ fixture.home_team_wins }}</td>
+                        </tr>
+                        <tr>
+                            <td>{{ fixture.previous_games - fixture.home_team_wins - fixture.away_team_wins }}</td>
+                            <td>Draws</td>
+                            <td>{{ fixture.previous_games - fixture.home_team_wins - fixture.away_team_wins }}</td>
+                        </tr>
+                        <tr>
+                            <td>{{ fixture.previous_games }}</td>
+                            <td>Total</td>
+                            <td>{{ fixture.previous_games }}</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                {% for match in fixture.recent_matches_home_team %}
+                                    <a href="{{ url_for('frontend.fixtures', id=match.id) }}"
+                                       class="tag is-rounded {% if match.result == 'W' %}is-success{% elif match.result == 'L' %}is-danger{% else %}is-info{% endif %}">{{ match.result }}</a>
+                                {% endfor %}
+                            </td>
+                            <td>Form</td>
+                            <td>
+                                {% for match in fixture.recent_matches_away_team %}
+                                    <a href="{{ url_for('frontend.fixtures', id=match.id) }}"
+                                       class="tag is-rounded {% if match.result == 'W' %}is-success{% elif match.result == 'L' %}is-danger{% else %}is-info{% endif %}">{{ match.result }}</a>
+                                {% endfor %}
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="block mt-3">
+                    <h2 class="subtitle is-3 has-text-primary">Recent Face-offs</h2>
+                    {% for fixture in fixture.recent_matches %}
+                        {% include '_fixture.html' %}
+                    {% endfor %}
+                    <hr class="my-0">
+                </div>
+            {% endif %}
+        </div>
+    </section>
+{% endblock %}

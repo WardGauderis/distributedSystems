@@ -30,12 +30,12 @@ def weather(datum, time, location):
 			'temp_max': weather['temp']['max'],
 			'temp_min': weather['temp']['min'],
 			'description': weather['weather'][0]['description'],
-			'id': weather['weather'][0]['id'],
-			'rain': weather['rain'],
+			'icon': weather['weather'][0]['icon'],
+			'humidity': weather['humidity'],
 			'feels_like': weather['feels_like']['day']
 		}
 	except:
-		return 'Weather/Geolocation service error'
+		return 'Weather/Geolocation service error. Please refresh.'
 
 
 @bp.route('/league_tables/<int:div>/<int:season>', methods=['GET'])
@@ -106,6 +106,7 @@ def fixture(id):
 	if not match:
 		abort(404)
 	result = match.serialize()
+	result['location'] = match.home_team.club.location()
 	if match.referee:
 		result['referee_first_name'] = match.referee.first_name
 		result['referee_last_name'] = match.referee.last_name
@@ -148,4 +149,5 @@ def team(id):
 	result = team.serialize()
 	result['recent_matches'] = [match.serialize() for match in team.recent(date.today(), 3)]
 	result['future_matches'] = [match.serialize() for match in team.future(date.today())]
+	result['club'] = team.club.serialize()
 	return jsonify(result)

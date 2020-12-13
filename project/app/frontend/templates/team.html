@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {{ team.name }}
+{% endblock %}
+
+{% block content %}
+    <section class="section">
+        <div class="container">
+
+            <h1 class="title has-text-primary">{{ team.name }}</h1>
+            <hr>
+
+            <div class="field is-grouped is-grouped-multiline is-justify-content-center">
+                {% if division %}
+                    <div class="control">
+                        <div class="tags has-addons are-medium">
+                            <span class="tag is-dark">Division</span>
+                            <span class="tag is-link">{{ division }}</span>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div class="control">
+                    <div class="tags has-addons are-medium">
+                        <span class="tag is-dark">Address</span>
+                        <span class="tag is-success">{{ team.club.address }} {{ team.club.zip_code }} {{ team.club.city }}</span>
+                    </div>
+                </div>
+
+                <div class="control">
+                    <div class="tags has-addons are-medium">
+                        <span class="tag is-dark">Club</span>
+                        <span class="tag is-info">{{ team.club.name }}</span>
+                    </div>
+                </div>
+
+                <div class="control">
+                    <div class="tags has-addons are-medium">
+                        <span class="tag is-dark">Colors</span>
+                        <span class="tag is-primary">{{ team.colors }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="block mt-3">
+                <h2 class="subtitle is-3 has-text-primary">Recent Fixtures</h2>
+                {% for fixture in team.recent_matches %}
+                    {% include '_fixture.html' %}
+                {% endfor %}
+                <hr class="my-0">
+            </div>
+            <div class="block">
+                <h2 class="subtitle is-3 has-text-primary">Future Fixtures</h2>
+                {% for fixture in team.future_matches %}
+                    {% include '_fixture.html' %}
+                {% endfor %}
+                <hr class="my-0">
+            </div>
+        </div>
+    </section>
+{% endblock %}

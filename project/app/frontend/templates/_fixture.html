@@ -1,5 +1,5 @@
-<hr class="my-1">
-<div class="level mb-0">    {# TODO linnk #}
+<hr class="my-0">
+<a class="level mb-0 has-text-black match py-2" href="{{ url_for('frontend.fixtures', id=fixture.id) }}">    {# TODO linnk #}
     <div class="level-left" style="flex-grow: 1; flex-basis: 0;">
         <div class="level-item">
             {{ fixture.date }}
@@ -25,4 +25,4 @@
             </div>
         {% endif %}
     </div>
-</div>
+</a>
