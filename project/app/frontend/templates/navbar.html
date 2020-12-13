@@ -19,15 +19,17 @@
                     </a>
                     <div class="navbar-dropdown">
                         {% for division in divisions %}
-                        <a class="navbar-item" href="{{ url_for('frontend.divisions', div=division.id, team=0, season=0) }}">
-                            {{ division.name }}
-                        </a>
+                            <a class="navbar-item"
+                               href="{{ url_for('frontend.divisions', div=division.id, team=0, season=0) }}">
+                                {{ division.name }}
+                            </a>
                         {% endfor %}
                     </div>
                 </div>
             </div>
 
-            <div class="navbar-end">
+            {% if current_user.has_team %}
+                <div class="navbar-end">
                 <div class="navbar-item has-dropdown is-hoverable">
                     <a class="navbar-link is-arrowless">
                         My Team
@@ -41,6 +43,8 @@
                         </a>
                     </div>
                 </div>
+            {% endif %}
+            {% if current_user.is_admin or current_user.is_super_admin %}
                 <div class="navbar-item has-dropdown is-hoverable">
                     <a class="navbar-link is-arrowless">
                         Admin
@@ -69,12 +73,17 @@
                         </a>
                     </div>
                 </div>
+            {% endif %}
+
+            {% if current_user.is_anonymous %}
                 <div class="navbar-item">
-                    <a class="button is-primary">Log In</a>
+                    <a class="button is-primary" href="{{ url_for('frontend.login') }}">Log In</a>
                 </div>
+            {% else %}
                 <div class="navbar-item">
-                    <a class="button is-primary">Log Out</a>
+                    <a class="button is-primary" href="{{ url_for('frontend.logout') }}">Log Out</a>
                 </div>
+            {% endif %}
             </div>
         </div>
     </div>

@@ -308,7 +308,7 @@ class User(db.Model, Model):
 
 	def get_token(self):
 		return jwt.encode(
-			{'id': self.id, 'exp': datetime.utcnow() + timedelta(hours=24)},
+			{'id': self.id},
 			current_app.config['SECRET_KEY'],
 			algorithm='HS256',
 		).decode('utf-8')

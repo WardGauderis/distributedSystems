@@ -1,11 +1,18 @@
-from . import bp
-from flask import render_template, request
+import jwt
+import requests
+from flask import render_template, request, url_for, redirect, flash
+from flask_login import login_required, logout_user, login_user, current_user
 from werkzeug.exceptions import HTTPException
 from werkzeug.http import HTTP_STATUS_CODES
-import requests
+from werkzeug.urls import url_parse
+from flask_wtf import FlaskForm
+from wtforms import *
+from wtforms.validators import *
+
+from . import bp, login
 
 
-# TODO check foutief, login
+# TODO check foutief
 
 @bp.app_errorhandler(HTTPException)
 def error_handler(error):
@@ -56,3 +63,65 @@ def fixtures(id):
 	fixture = requests.get(f'http://nginx/api/stats/fixtures/{id}').json()
 	division = divisions[int(fixture['division_id']) - 1]['name']
 	return render_template('fixture.html', divisions=divisions, fixture=fixture, division=division)
+
+
+class User(object):
+	def __init__(self, token):
+		self.token = token
+		self.id = jwt.decode(token, algorithms=['HS256'], verify=False)['id']
+		user = requests.get(f'http://nginx/api/crud/users/{self.id}',
+							headers={'Authorization': f'Bearer {self.token}'}).json()
+		self.is_admin = user['is_admin'] == 'True'
+		self.is_super_admin = user['is_super_admin'] == 'True'
+		self.has_team = 'team_id' in user
+
+	@property
+	def is_active(self):
+		return True
+
+	@property
+	def is_authenticated(self):
+		return True
+
+	@property
+	def is_anonymous(self):
+		return False
+
+	def get_id(self):
+		return self.token
+
+
+@login.user_loader
+def load_user(token):
+	return User(token)
+
+
+class LoginForm(FlaskForm):
+	username = StringField('Username', [DataRequired()])
+	password = PasswordField('Password', [DataRequired()])
+	submit = SubmitField('Log In')
+
+
+@bp.route('/login', methods=['GET', 'POST'])
+def login():
+	if current_user.is_authenticated:
+		return redirect(url_for('main.index'))
+	form = LoginForm()
+	if form.validate_on_submit():
+		json = requests.post(f'http://nginx/api/auth', auth=(form.username.data, form.password.data)).json()
+		if 'token' in json:
+			token = json['token']
+			login_user(User(token))
+			next_page = request.args.get('next')
+			if not next_page or url_parse(next_page).netloc != '':
+				next_page = url_for('frontend.index')
+			return redirect(next_page)
+		flash('Invalid username or password', 'danger')
+	return render_template('login.html', form=form)
+
+
+@bp.route('/logout', methods=['GET'])
+@login_required
+def logout():
+	logout_user()
+	return redirect(url_for('frontend.index'))

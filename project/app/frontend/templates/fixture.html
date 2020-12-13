@@ -7,25 +7,25 @@
 {% block content %}
     <section class="section">
         <div class="container">
-            <div class="level has-text-centered">
-                <div class="level-left">
+            <div class="columns has-text-centered">
+                <div class="column">
                     <a href="{{ url_for('frontend.teams', id=fixture.home_team_id) }}"
                        class="title has-text-primary">{{ fixture.home_team_name }}</a>
                 </div>
                 {% if fixture.goals_home_team %}
-                    <div class="level-item">
+                    <div class="column">
                         <h1 class="title has-text-{% if fixture.goals_home_team < fixture.goals_away_team %}danger{% elif fixture.goals_home_team > fixture.goals_away_team %}success{% else %}info{% endif %}">{{ fixture.goals_home_team }}</h1>
                     </div>
                 {% endif %}
-                <div class="level-item">
+                <div class="column">
                     <h1 class="title has-text-primary">-</h1>
                 </div>
                 {% if fixture.goals_home_team %}
-                    <div class="level-item">
+                    <div class="column">
                         <h1 class="title has-text-{% if fixture.goals_home_team < fixture.goals_away_team %}success{% elif fixture.goals_home_team > fixture.goals_away_team %}danger{% else %}info{% endif %}">{{ fixture.goals_away_team }}</h1>
                     </div>
                 {% endif %}
-                <div class="level-right">
+                <div class="column">
                     <h1 href="{{ url_for('frontend.teams', id=fixture.away_team_id) }}"
                         class="title has-text-primary">{{ fixture.away_team_name }}</h1>
                 </div>
