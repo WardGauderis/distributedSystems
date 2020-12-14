@@ -61,8 +61,7 @@ def teams(id):
 def fixtures(id):
 	divisions = requests.get(f'http://nginx/api/crud/divisions').json()
 	fixture = requests.get(f'http://nginx/api/stats/fixtures/{id}').json()
-	division = divisions[int(fixture['division_id']) - 1]['name']
-	return render_template('fixture.html', divisions=divisions, fixture=fixture, division=division)
+	return render_template('fixture.html', divisions=divisions, fixture=fixture)
 
 
 class User(object):
@@ -105,7 +104,7 @@ class LoginForm(FlaskForm):
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
 	if current_user.is_authenticated:
-		return redirect(url_for('main.index'))
+		return redirect(url_for('frontend.index'))
 	form = LoginForm()
 	if form.validate_on_submit():
 		json = requests.post(f'http://nginx/api/auth', auth=(form.username.data, form.password.data)).json()
@@ -117,7 +116,8 @@ def login():
 				next_page = url_for('frontend.index')
 			return redirect(next_page)
 		flash('Invalid username or password', 'danger')
-	return render_template('login.html', form=form)
+	divisions = requests.get(f'http://nginx/api/crud/divisions').json()
+	return render_template('login.html', form=form, divisions=divisions)
 
 
 @bp.route('/logout', methods=['GET'])
@@ -125,3 +125,64 @@ def login():
 def logout():
 	logout_user()
 	return redirect(url_for('frontend.index'))
+
+
+@bp.route('/clubs', methods=['GET'])
+@login_required
+def clubs_admin():
+	if current_user.is_authenticated and not (current_user.is_admin or current_user.is_super_admin):
+		return redirect(url_for('frontend.index'))
+	divisions = requests.get(f'http://nginx/api/crud/divisions').json()
+	clubs = requests.get(f'http://nginx/api/crud/clubs').json()
+	return render_template('clubs.html', divisions=divisions, clubs=clubs)
+
+
+@bp.route('/teams', methods=['GET'])
+@login_required
+def teams_admin():
+	if current_user.is_authenticated and not (current_user.is_admin or current_user.is_super_admin):
+		return redirect(url_for('frontend.index'))
+	divisions = requests.get(f'http://nginx/api/crud/divisions').json()
+	teams = requests.get(f'http://nginx/api/crud/teams').json()
+	return render_template('teams.html', divisions=divisions, teams=teams)
+
+
+@bp.route('/divisions', methods=['GET'])
+@login_required
+def divisions_admin():
+	if current_user.is_authenticated and not (current_user.is_admin or current_user.is_super_admin):
+		return redirect(url_for('frontend.index'))
+	divisions = requests.get(f'http://nginx/api/crud/divisions').json()
+	return render_template('divisions.html', divisions=divisions)
+
+
+@bp.route('/matches', methods=['GET'])
+@login_required
+def matches_admin():
+	if current_user.is_authenticated and not (current_user.is_admin or current_user.is_super_admin):
+		return redirect(url_for('frontend.index'))
+	divisions = requests.get(f'http://nginx/api/crud/divisions').json()
+	matches = requests.get(f'http://nginx/api/crud/matches').json()
+	return render_template('matches.html', divisions=divisions, matches=matches)
+
+
+@bp.route('/referees', methods=['GET'])
+@login_required
+def referees_admin():
+	if current_user.is_authenticated and not (current_user.is_admin or current_user.is_super_admin):
+		return redirect(url_for('frontend.index'))
+	divisions = requests.get(f'http://nginx/api/crud/divisions').json()
+	referees = requests.get(f'http://nginx/api/crud/referees',
+							headers={'Authorization': f'Bearer {current_user.token}'}).json()
+	return render_template('referees.html', divisions=divisions, referees=referees)
+
+
+@bp.route('/users', methods=['GET'])
+@login_required
+def users_admin():
+	if current_user.is_authenticated and not (current_user.is_admin or current_user.is_super_admin):
+		return redirect(url_for('frontend.index'))
+	divisions = requests.get(f'http://nginx/api/crud/divisions').json()
+	users = requests.get(f'http://nginx/api/crud/users',
+						 headers={'Authorization': f'Bearer {current_user.token}'}).json()
+	return render_template('users.html', divisions=divisions, users=users)

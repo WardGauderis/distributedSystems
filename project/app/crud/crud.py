@@ -34,7 +34,7 @@ def handle_error(e, model):
 @bp.route('/clubs', methods=['GET', 'POST'])
 def clubs():
 	if request.method == 'GET':
-		clubs = [club.serialize() for club in Club.query.all()]
+		clubs = [club.serialize() for club in Club.query.order_by(Club.name).all()]
 		return jsonify(clubs)
 	elif request.method == 'POST':
 		club = Club()
@@ -109,7 +109,7 @@ def team(id):
 @bp.route('/divisions', methods=['GET', 'POST'])
 def divisions():
 	if request.method == 'GET':
-		divisions = [division.serialize() for division in Division.query.all()]
+		divisions = [division.serialize() for division in Division.query.order_by(Division.name).all()]
 		return jsonify(divisions)
 	elif request.method == 'POST':
 		division = Division()
@@ -146,7 +146,8 @@ def division(id):
 @bp.route('/matches', methods=['GET', 'POST'])
 def matches():
 	if request.method == 'GET':
-		matches = [match.serialize() for match in Match.query.all()]
+		#TODO sort
+		matches = [match.serialize() for match in Match.query.order_by(Match.date, Match.time, Match.id).all()]
 		return jsonify(matches)
 	elif request.method == 'POST':
 		match = Match()

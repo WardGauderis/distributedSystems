@@ -50,25 +50,22 @@
                         Admin
                     </a>
                     <div class="navbar-dropdown">
-                        <a class="navbar-item">
+                        <a class="navbar-item" href="{{ url_for('frontend.clubs_admin') }}">
                             Clubs
                         </a>
-                        <a class="navbar-item">
+                        <a class="navbar-item" href="{{ url_for('frontend.teams_admin') }}">
                             Teams
                         </a>
-                        <a class="navbar-item">
-                            Teams
-                        </a>
-                        <a class="navbar-item">
+                        <a class="navbar-item" href="{{ url_for('frontend.divisions_admin') }}">
                             Divisions
                         </a>
-                        <a class="navbar-item">
+                        <a class="navbar-item" href="{{ url_for('frontend.matches_admin') }}">
                             Matches
                         </a>
-                        <a class="navbar-item">
+                        <a class="navbar-item" href="{{ url_for('frontend.referees_admin') }}">
                             Referees
                         </a>
-                        <a class="navbar-item">
+                        <a class="navbar-item" href="{{ url_for('frontend.users_admin') }}">
                             Users
                         </a>
                     </div>

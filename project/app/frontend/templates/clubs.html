@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Clubs
+{% endblock %}
+
+{% block content %}
+    <div class="section">
+        <div class="container">
+            <h1 class="title has-text-primary">Clubs</h1>
+            <hr>
+            <table class="table is-hoverable is-fullwidth">
+                <thead>
+                <tr>
+                    <th>
+                        Stam Number
+                    </th>
+                    <th>
+                        Name
+                    </th>
+                    <th>
+                        Address
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for club in clubs %}
+                    <tr>
+                        <td>
+                            {{ club.stam_number }}
+                        </td>
+                        <td>
+                            {{ club.name }}
+                        </td>
+                        <td>
+                            {{ club.address }} {{ club.zip_code }} {{ club.city }}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

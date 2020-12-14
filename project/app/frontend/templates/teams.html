@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Teams
+{% endblock %}
+
+{% block content %}
+    <div class="section">
+        <div class="container">
+            <h1 class="title has-text-primary">Teams</h1>
+            <hr>
+            <table class="table is-hoverable is-fullwidth">
+                <thead>
+                <tr>
+                    <th>
+                        ID
+                    </th>
+                    <th>
+                        Stam Number
+                    </th>
+                    <th>
+                        Name
+                    </th>
+                    <th>
+                        Colors
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for team in teams %}
+                    <tr>
+                        <td>
+                            {{ team.id }}
+                        </td>
+                        <td>
+                            {{ team.stam_number }}
+                        </td>
+                        <td>
+                            {{ team.name }}
+                        </td>
+                        <td>
+                            {{ team.colors }}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

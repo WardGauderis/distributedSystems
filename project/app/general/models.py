@@ -6,6 +6,21 @@ from flask import current_app
 from datetime import date
 
 
+def get_season(datum: date):
+	return datum.year - (datum < date(datum.year, 4, 30))
+
+
+def get_season_start_and_end(season, past=True):
+	if season <= 0:
+		if past:
+			return date(1, 9, 4), date.today()
+		else:
+			return date.today(), date(get_season(date.today()) + 1, 4, 30)
+	if not past:
+		return date(season, 9, 1), date(season + 1, 4, 30)
+	return date(season, 9, 1), min(date(season + 1, 4, 30), date.today())
+
+
 class Model:
 	forbidden = ['_sa_instance_state', '__table_args__', 'id']
 
@@ -203,7 +218,7 @@ class Division(db.Model, Model):
 
 
 class Match(db.Model, Model):
-	forbidden = Model.forbidden + ['home_team', 'away_team', 'referee']
+	forbidden = Model.forbidden + ['home_team', 'away_team', 'referee', 'division']
 	__table_args__ = (db.UniqueConstraint('date', 'home_team_id', 'away_team_id'),
 					  db.CheckConstraint('home_team_id != away_team_id'),
 					  db.CheckConstraint('matchweek > 0'),
@@ -228,11 +243,16 @@ class Match(db.Model, Model):
 	home_team = db.relationship('Team', foreign_keys=[home_team_id])
 	away_team = db.relationship('Team', foreign_keys=[away_team_id])
 	referee = db.relationship('Referee')
+	division = db.relationship('Division')
 
 	def serialize(self):
 		map = Model.serialize(self)
 		map['home_team_name'] = self.home_team.name()
 		map['away_team_name'] = self.away_team.name()
+		map['division_name'] = self.division.name
+		if self.referee:
+			map['referee_name'] = self.referee.first_name + ' ' + self.referee.last_name
+		map['season'] = get_season(self.date)
 		return map
 
 	def history(self, a, b):
@@ -312,18 +332,3 @@ class User(db.Model, Model):
 			current_app.config['SECRET_KEY'],
 			algorithm='HS256',
 		).decode('utf-8')
-
-
-def get_season(datum: date):
-	return datum.year - (datum < date(datum.year, 4, 30))
-
-
-def get_season_start_and_end(season, past=True):
-	if season <= 0:
-		if past:
-			return date(1, 9, 4), date.today()
-		else:
-			return date.today(), date(get_season(date.today()) + 1, 4, 30)
-	if not past:
-		return date(season, 9, 1), date(season + 1, 4, 30)
-	return date(season, 9, 1), min(date(season + 1, 4, 30), date.today())

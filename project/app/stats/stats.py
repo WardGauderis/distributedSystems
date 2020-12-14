@@ -107,9 +107,6 @@ def fixture(id):
 		abort(404)
 	result = match.serialize()
 	result['location'] = match.home_team.club.location()
-	if match.referee:
-		result['referee_first_name'] = match.referee.first_name
-		result['referee_last_name'] = match.referee.last_name
 	if (match.date > date.today() or (
 			match.date == date.today() and match.time > datetime.now().time())) and match.goals_home_team is None:
 		a, b = get_season_start_and_end(get_season(match.date))

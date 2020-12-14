@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Divisions
+{% endblock %}
+
+{% block content %}
+    <div class="section">
+        <div class="container">
+            <h1 class="title has-text-primary">Divisions</h1>
+            <hr>
+            <table class="table is-hoverable is-fullwidth">
+                <thead>
+                <tr>
+                    <th>
+                        ID
+                    </th>
+                    <th>
+                        Name
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for division in divisions %}
+                    <tr>
+                        <td>
+                            {{ division.id }}
+                        </td>
+                        <td>
+                            {{ division.name }}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

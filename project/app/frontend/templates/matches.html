@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Matches
+{% endblock %}
+
+{% block content %}
+    <div class="section">
+        <div class="container">
+            <h1 class="title has-text-primary">Matches</h1>
+            <hr>
+            <table class="table is-hoverable is-fullwidth">
+                <thead>
+                <tr>
+                    <th>
+                        ID
+                    </th>
+                    <th>
+                        Division
+                    </th>
+                    <th>
+                        Season
+                    </th>
+                    <th>
+                        Week
+                    </th>
+                    <th>
+                        Home Team
+                    </th>
+                    <th>
+                        Away Team
+                    </th>
+                    <th>
+                        Date
+                    </th>
+                    <th>
+                        Time
+                    </th>
+                    <th>
+                        Referee
+                    </th>
+                    <th>
+                        Status
+                    </th>
+                    <th>
+                        Score
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for match in matches %}
+                    <tr>
+                        <td>
+                            {{ match.id }}
+                        </td>
+                        <td>
+                            {{ match.division_name }}
+                        </td>
+                        <td>
+                            {{ match.season }} - {{ match.season + 1 }}
+                        </td>
+                        <td>
+                            {{ match.matchweek }}
+                        </td>
+                        <td>
+                            {{ match.home_team_name }}
+                        </td>
+                        <td>
+                            {{ match.away_team_name }}
+                        </td>
+                        <td>
+                            {{ match.date }}
+                        </td>
+                        <td>
+                            {{ match.time }}
+                        </td>
+                        <td>
+                            {#                            TODO test#}
+                            {{ match.referee_name }}
+                        </td>
+                        <td>
+                            {{ match.status }}
+                        </td>
+                        <td>
+                            {{ match.goals_home_team }} - {{ match.goals_away_team }}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

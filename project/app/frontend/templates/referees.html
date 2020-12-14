@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Referees
+{% endblock %}
+
+{% block content %}
+    <div class="section">
+        <div class="container">
+            <h1 class="title has-text-primary">Referees</h1>
+            <hr>
+            <table class="table is-hoverable is-fullwidth">
+                <thead>
+                <tr>
+                    <th>
+                        ID
+                    </th>
+                    <th>
+                        Name
+                    </th>
+                    <th>
+                        Date of Birth
+                    </th>
+                    <th>
+                        Address
+                    </th>
+                    <th>
+                        Email
+                    </th>
+                    <th>
+                        Phone Number
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for referee in referees %}
+                    <tr>
+                        <td>
+                            {{ referee.id }}
+                        </td>
+                        <td>
+                            {{ referee.first_name }} {{ referee.last_name }}
+                        </td>
+                        <td>
+                            {{ referee.date_of_birth }}
+                        </td>
+                        <td>
+                            {{ referee.address }} {{ referee.zip_code }} {{ referee.city }}
+                        </td>
+                        <td>
+                            {{ referee.email }}
+                        </td>
+                        <td>
+                            {{ referee.phone_number }}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}
