@@ -27,7 +27,9 @@
                             {{ division.id }}
                         </td>
                         <td>
-                            {{ division.name }}
+                            <a href="{{ url_for('frontend.division_admin', id=division.id) }}">
+                                {{ division.name }}
+                            </a>
                         </td>
                     </tr>
                 {% endfor %}

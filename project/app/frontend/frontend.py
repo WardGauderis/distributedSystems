@@ -5,14 +5,12 @@ from flask_login import login_required, logout_user, login_user, current_user
 from werkzeug.exceptions import HTTPException
 from werkzeug.http import HTTP_STATUS_CODES
 from werkzeug.urls import url_parse
-from flask_wtf import FlaskForm
-from wtforms import *
-from wtforms.validators import *
 
 from . import bp, login
+from .forms import *
 
 
-# TODO check foutief
+# TODO check foutief, divisions voor navbar, error url
 
 @bp.app_errorhandler(HTTPException)
 def error_handler(error):
@@ -64,14 +62,17 @@ def fixtures(id):
 	return render_template('fixture.html', divisions=divisions, fixture=fixture)
 
 
+########################################################################################################################
+
+
 class User(object):
 	def __init__(self, token):
 		self.token = token
 		self.id = jwt.decode(token, algorithms=['HS256'], verify=False)['id']
 		user = requests.get(f'http://nginx/api/crud/users/{self.id}',
 							headers={'Authorization': f'Bearer {self.token}'}).json()
-		self.is_admin = user['is_admin'] == 'True'
-		self.is_super_admin = user['is_super_admin'] == 'True'
+		self.is_admin = user['is_admin']
+		self.is_super_admin = user['is_super_admin']
 		self.has_team = 'team_id' in user
 
 	@property
@@ -93,12 +94,6 @@ class User(object):
 @login.user_loader
 def load_user(token):
 	return User(token)
-
-
-class LoginForm(FlaskForm):
-	username = StringField('Username', [DataRequired()])
-	password = PasswordField('Password', [DataRequired()])
-	submit = SubmitField('Log In')
 
 
 @bp.route('/login', methods=['GET', 'POST'])
@@ -127,6 +122,9 @@ def logout():
 	return redirect(url_for('frontend.index'))
 
 
+########################################################################################################################
+
+
 @bp.route('/clubs', methods=['GET'])
 @login_required
 def clubs_admin():
@@ -141,7 +139,7 @@ def clubs_admin():
 @login_required
 def teams_admin():
 	if current_user.is_authenticated and not (current_user.is_admin or current_user.is_super_admin):
-		return redirect(url_for('frontend.index'))
+		return redirect(url_for('frontend.index'))  # TODO flash
 	divisions = requests.get(f'http://nginx/api/crud/divisions').json()
 	teams = requests.get(f'http://nginx/api/crud/teams').json()
 	return render_template('teams.html', divisions=divisions, teams=teams)
@@ -162,8 +160,12 @@ def matches_admin():
 	if current_user.is_authenticated and not (current_user.is_admin or current_user.is_super_admin):
 		return redirect(url_for('frontend.index'))
 	divisions = requests.get(f'http://nginx/api/crud/divisions').json()
-	matches = requests.get(f'http://nginx/api/crud/matches').json()
-	return render_template('matches.html', divisions=divisions, matches=matches)
+	queries = {'division_id': int(request.args.get('division_id', default=0)),
+			   'season': int(request.args.get('season', default=0))}
+	matches = requests.get(f'http://nginx/api/crud/matches', queries).json()
+	seasons = requests.get(f'http://nginx/api/crud/seasons').json()
+	return render_template('matches.html', divisions=divisions, matches=matches, season=int(queries['season']),
+						   division=queries['division_id'], seasons=seasons)
 
 
 @bp.route('/referees', methods=['GET'])
@@ -186,3 +188,69 @@ def users_admin():
 	users = requests.get(f'http://nginx/api/crud/users',
 						 headers={'Authorization': f'Bearer {current_user.token}'}).json()
 	return render_template('users.html', divisions=divisions, users=users)
+
+
+########################################################################################################################
+
+
+def update(type, title, form, id):
+	if current_user.is_authenticated and not (current_user.is_admin or current_user.is_super_admin):
+		return redirect(url_for('frontend.index'))  # TODO flash?
+
+	divisions = requests.get(f'http://nginx/api/crud/divisions').json()
+
+	if 'delete' in request.form:
+		r = requests.delete(f'http://nginx/api/crud/{type}/{id}', json=form.to_json(),
+							headers={'Authorization': f'Bearer {current_user.token}'})
+		return redirect(url_for(f'frontend.{type}_admin'))
+
+	if form.validate_on_submit():
+		r = requests.put(f'http://nginx/api/crud/{type}/{id}', json=form.to_json(),
+						 headers={'Authorization': f'Bearer {current_user.token}'})
+		if r.ok:
+			return redirect(url_for(f'frontend.{type}_admin'))
+		flash(r.json()['description'], 'danger')
+		return render_template('form.html', title=title, form=form, divisions=divisions)
+
+	json = requests.get(f'http://nginx/api/crud/{type}/{id}').json()
+	form.from_json(json)
+	return render_template('form.html', title=title, form=form, divisions=divisions)
+
+
+@bp.route('/clubs/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def club_admin(id):
+	return update('clubs', 'Club', ClubForm(), id)
+
+
+@bp.route('/teams/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def team_admin(id):
+	form = TeamForm()
+	clubs = requests.get(f'http://nginx/api/crud/clubs').json()
+	form.stam_number.choices = [(club['stam_number'], club['name']) for club in clubs]
+	return update('teams', 'Team', form, id)
+
+
+@bp.route('/divisions/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def division_admin(id):
+	return update('divisions', 'Division', DivisionForm(), id)
+
+
+@bp.route('/matches/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def match_admin(id):
+	form = MatchForm()
+	teams = requests.get(f'http://nginx/api/crud/teams').json()
+	referees = requests.get(f'http://nginx/api/crud/referees',
+							headers={'Authorization': f'Bearer {current_user.token}'}).json()
+	divisions = requests.get(f'http://nginx/api/crud/divisions').json()
+	form.home_team_id.choices = [(team['id'], team['name']) for team in teams]
+	form.away_team_id.choices = [(team['id'], team['name']) for team in teams]
+	form.referee_id.choices = [
+		(referee['id'], referee['first_name'] + ' ' + referee['last_name'] + ' ' + referee['date_of_birth']) for referee
+		in
+		referees]
+	form.division_id.choices = [(division['id'], division['name']) for division in divisions]
+	return update('matches', 'Match', form, id)

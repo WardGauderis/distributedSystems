@@ -36,7 +36,9 @@
                             {{ team.stam_number }}
                         </td>
                         <td>
-                            {{ team.name }}
+                            <a href="{{ url_for('frontend.team_admin', id=team.id) }}">
+                                {{ team.name }}
+                            </a>
                         </td>
                         <td>
                             {{ team.colors }}

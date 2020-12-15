@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block title %}
-   Users
+    Users
 {% endblock %}
 
 {% block content %}
@@ -36,7 +36,9 @@
                             {{ user.id }}
                         </td>
                         <td>
-                            {{ user.username }}
+                            <a>
+                                {{ user.username }}
+                            </a>
                         </td>
                         <td>
                             {{ user.email }}

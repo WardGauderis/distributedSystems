@@ -35,6 +35,15 @@
                     </div>
                 </div>
 
+                {% if team.club.website %}
+                    <div class="control">
+                        <div class="tags has-addons are-medium">
+                            <span class="tag is-dark">Website</span>
+                            <a class="tag is-warning" href="http://{{ team.club.website }}">{{ team.club.website }}</a>
+                        </div>
+                    </div>
+                {% endif %}
+
                 <div class="control">
                     <div class="tags has-addons are-medium">
                         <span class="tag is-dark">Colors</span>

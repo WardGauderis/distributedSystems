@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from app.service import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import current_app
-from datetime import date
+from datetime import date, time
 
 
 def get_season(datum: date):
@@ -23,11 +23,15 @@ def get_season_start_and_end(season, past=True):
 
 class Model:
 	forbidden = ['_sa_instance_state', '__table_args__', 'id']
+	hidden = ['_sa_instance_state', '__table_args__']
 
 	def serialize(self):
 		map = dict(vars(self))
-		map.pop('_sa_instance_state')
-		return {k: str(v) for k, v in map.items() if v is not None}
+		map = {k: v for k, v in map.items() if v is not None and k not in self.hidden}
+		for key, value in map.items():
+			if type(value) == time or type(value) == date:
+				map[key] = str(value)
+		return map
 
 	def deserialize(self, map):
 		for key, value in map.items():
@@ -50,6 +54,7 @@ class Club(db.Model, Model):
 
 class Team(db.Model, Model):
 	forbidden = Model.forbidden + ['club']
+	hidden = Model.hidden + ['club']
 	__table_args__ = (db.UniqueConstraint('suffix', 'stam_number'),
 					  db.CheckConstraint('id > 0'))
 	id = db.Column(db.Integer(), db.Sequence('team_id_seq', start=72, increment=1), primary_key=True)
@@ -219,6 +224,7 @@ class Division(db.Model, Model):
 
 class Match(db.Model, Model):
 	forbidden = Model.forbidden + ['home_team', 'away_team', 'referee', 'division']
+	hidden = Model.hidden + ['home_team', 'away_team', 'referee', 'division']
 	__table_args__ = (db.UniqueConstraint('date', 'home_team_id', 'away_team_id'),
 					  db.CheckConstraint('home_team_id != away_team_id'),
 					  db.CheckConstraint('matchweek > 0'),
@@ -280,7 +286,7 @@ class Match(db.Model, Model):
 		return Match.query.filter(
 			db.or_(db.and_(Match.home_team_id == self.home_team_id, Match.away_team_id == self.away_team_id),
 				   db.and_(Match.home_team_id == self.away_team_id, Match.away_team_id == self.home_team_id))).filter(
-			Match.date <= b).filter(Match.goals_home_team != None).order_by(Match.date.desc()).limit(3).all()
+			Match.date <= b).order_by(Match.date.desc()).limit(3).all()
 
 	def result(self, team):
 		if self.goals_home_team > self.goals_away_team:
@@ -305,6 +311,7 @@ class Referee(db.Model, Model):
 
 class User(db.Model, Model):
 	forbidden = Model.forbidden + ['team', 'is_super_admin', 'password_hash']
+	hidden = Model.hidden + ['team', 'password_hash']
 	id = db.Column(db.Integer(), primary_key=True)
 	username = db.Column(db.String(64), nullable=False, unique=True)
 	password_hash = db.Column(db.String(128), nullable=False)

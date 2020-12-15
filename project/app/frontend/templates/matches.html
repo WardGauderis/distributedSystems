@@ -7,7 +7,38 @@
 {% block content %}
     <div class="section">
         <div class="container">
-            <h1 class="title has-text-primary">Matches</h1>
+            <div class="level">
+
+                <h1 class="title level-left has-text-primary mb-0">Matches</h1>
+
+                <div class="field is-grouped level-right">
+                    <form>
+                        <div class="select control">
+                            <label>
+                                <select name='season' onchange="this.form.submit()">
+                                    <option value="0" {% if season == 0 %}selected{% endif %}>All Time</option>
+                                    {% for s in seasons %}
+                                        <option value="{{ s }}" {% if season == s %}selected{% endif %}>
+                                            Season {{ s }}-{{ s + 1 }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+                        </div>
+                        <div class="select control">
+                            <label>
+                                <select name='division_id' onchange="this.form.submit()">
+                                    <option value="0" {% if division == 0 %}selected{% endif %}>All Divisions</option>
+                                    {% for d in divisions %}
+                                        <option value="{{ d.id }}"
+                                                {% if division == d.id %}selected{% endif %}>{{ d.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <hr>
             <table class="table is-hoverable is-fullwidth">
                 <thead>
@@ -51,7 +82,9 @@
                 {% for match in matches %}
                     <tr>
                         <td>
-                            {{ match.id }}
+                            <a href="{{ url_for('frontend.match_admin', id=match.id) }}">
+                                {{ match.id }}
+                            </a>
                         </td>
                         <td>
                             {{ match.division_name }}

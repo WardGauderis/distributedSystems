@@ -21,6 +21,9 @@
                     <th>
                         Address
                     </th>
+                    <th>
+                        Website
+                    </th>
                 </tr>
                 </thead>
                 <tbody>
@@ -30,10 +33,15 @@
                             {{ club.stam_number }}
                         </td>
                         <td>
-                            {{ club.name }}
+                            <a href="{{ url_for('frontend.club_admin', id=club.stam_number) }}">
+                                {{ club.name }}
+                            </a>
                         </td>
                         <td>
                             {{ club.address }} {{ club.zip_code }} {{ club.city }}
+                        </td>
+                        <td>
+                            {{ club.website }}
                         </td>
                     </tr>
                 {% endfor %}

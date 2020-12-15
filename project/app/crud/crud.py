@@ -146,9 +146,17 @@ def division(id):
 @bp.route('/matches', methods=['GET', 'POST'])
 def matches():
 	if request.method == 'GET':
-		#TODO sort
-		matches = [match.serialize() for match in Match.query.order_by(Match.date, Match.time, Match.id).all()]
-		return jsonify(matches)
+		try:
+			matches = Match.query.order_by(Match.date, Match.time, Match.id)
+			if 'season' in request.args and request.args['season'] != '0':
+				a, b = get_season_start_and_end(int(request.args['season']))
+				matches = matches.filter(db.and_(Match.date >= a, Match.date <= b))
+			if 'division_id' in request.args and request.args['division_id'] != '0':
+				matches = matches.filter(Match.division_id == int(request.args['division_id']))
+			matches = [match.serialize() for match in matches.all()]
+			return jsonify(matches)
+		except:
+			abort(400)
 	elif request.method == 'POST':
 		match = Match()
 		try:
@@ -157,7 +165,6 @@ def matches():
 			db.session.commit()
 			return jsonify({'id': match.id})
 		except exc.StatementError as e:
-
 			handle_error(e, 'match')
 
 

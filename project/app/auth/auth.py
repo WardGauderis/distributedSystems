@@ -44,7 +44,7 @@ def authorize():
 			allowed = super_admin
 		elif admin or super_admin:
 			allowed = True
-		if method == 'GET' and uri == f'/api/crud/users/{user.id}':
+		elif method == 'GET' and uri == f'/api/crud/users/{user.id}':
 				allowed = True
 		elif uri.startswith('/api/crud/matches/') and method == 'PATCH':  # TODO check
 			allowed = int(requests.get('http://crud:5000' + uri[9:]).json()['home_team_id']) == user.team_id
