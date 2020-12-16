@@ -5,6 +5,11 @@
 {% endblock %}
 
 {% block content %}
+    <style>
+        tr {
+            cursor: pointer;
+        }
+    </style>
     <div class="section">
         <div class="container">
             <div class="level">
@@ -83,11 +88,9 @@
                 </thead>
                 <tbody>
                 {% for match in matches %}
-                    <tr>
+                    <tr onclick="window.location='{{ url_for('frontend.match_admin', id=match.id) }}'">
                         <td>
-                            <a href="{{ url_for('frontend.match_admin', id=match.id) }}">
-                                {{ match.id }}
-                            </a>
+                            {{ match.id }}
                         </td>
                         <td>
                             {{ match.division_name }}

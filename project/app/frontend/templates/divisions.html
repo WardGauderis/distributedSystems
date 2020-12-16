@@ -5,6 +5,11 @@
 {% endblock %}
 
 {% block content %}
+    <style>
+    tr {
+        cursor: pointer;
+    }
+    </style>
     <div class="section">
         <div class="container">
             <div class="level">
@@ -29,14 +34,12 @@
                 </thead>
                 <tbody>
                 {% for division in divisions %}
-                    <tr>
+                    <tr onclick="window.location='{{ url_for('frontend.division_admin', id=division.id) }}'">
                         <td>
                             {{ division.id }}
                         </td>
                         <td>
-                            <a href="{{ url_for('frontend.division_admin', id=division.id) }}">
-                                {{ division.name }}
-                            </a>
+                            {{ division.name }}
                         </td>
                     </tr>
                 {% endfor %}

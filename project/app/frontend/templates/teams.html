@@ -5,6 +5,11 @@
 {% endblock %}
 
 {% block content %}
+    <style>
+        tr {
+            cursor: pointer;
+        }
+    </style>
     <div class="section">
         <div class="container">
             <div class="level">
@@ -35,7 +40,7 @@
                 </thead>
                 <tbody>
                 {% for team in teams %}
-                    <tr>
+                    <tr onclick="window.location='{{ url_for('frontend.team_admin', id=team.id) }}'">
                         <td>
                             {{ team.id }}
                         </td>
@@ -43,9 +48,7 @@
                             {{ team.stam_number }}
                         </td>
                         <td>
-                            <a href="{{ url_for('frontend.team_admin', id=team.id) }}">
-                                {{ team.name }}
-                            </a>
+                            {{ team.name }}
                         </td>
                         <td>
                             {{ team.colors }}

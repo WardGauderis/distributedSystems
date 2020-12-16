@@ -5,6 +5,11 @@
 {% endblock %}
 
 {% block content %}
+    <style>
+        tr {
+            cursor: pointer;
+        }
+    </style>
     <div class="section">
         <div class="container">
             <div class="level">
@@ -35,14 +40,12 @@
                 </thead>
                 <tbody>
                 {% for club in clubs %}
-                    <tr>
+                    <tr onclick="window.location='{{ url_for('frontend.club_admin', id=club.stam_number) }}'">
                         <td>
                             {{ club.stam_number }}
                         </td>
                         <td>
-                            <a href="{{ url_for('frontend.club_admin', id=club.stam_number) }}">
-                                {{ club.name }}
-                            </a>
+                            {{ club.name }}
                         </td>
                         <td>
                             {{ club.address }} {{ club.zip_code }} {{ club.city }}

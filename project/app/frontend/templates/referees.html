@@ -5,6 +5,11 @@
 {% endblock %}
 
 {% block content %}
+    <style>
+        tr {
+            cursor: pointer;
+        }
+    </style>
     <div class="section">
         <div class="container">
             <div class="level">
@@ -41,14 +46,12 @@
                 </thead>
                 <tbody>
                 {% for referee in referees %}
-                    <tr>
+                    <tr onclick="window.location='{{ url_for('frontend.referee_admin', id=referee.id) }}'">
                         <td>
                             {{ referee.id }}
                         </td>
                         <td>
-                            <a href="{{ url_for('frontend.referee_admin', id=referee.id) }}">
-                                {{ referee.first_name }} {{ referee.last_name }}
-                            </a>
+                            {{ referee.first_name }} {{ referee.last_name }}
                         </td>
                         <td>
                             {{ referee.date_of_birth }}

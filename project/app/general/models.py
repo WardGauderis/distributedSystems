@@ -304,7 +304,7 @@ class Referee(db.Model, Model):
 	address = db.Column(db.String(128), nullable=False)
 	zip_code = db.Column(db.Integer(), nullable=False)
 	city = db.Column(db.String(64), nullable=False)
-	phone_number = db.Column(db.String(64), nullable=False)  # TODO check (niet in db)
+	phone_number = db.Column(db.String(64), nullable=False)
 	email = db.Column(db.String(128), nullable=False)
 	date_of_birth = db.Column(db.Date(), nullable=False)
 
