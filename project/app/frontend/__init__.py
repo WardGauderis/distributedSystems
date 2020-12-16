@@ -4,6 +4,7 @@ from flask_login import LoginManager
 bp = Blueprint('frontend', __name__)
 login = LoginManager()
 login.login_view = 'frontend.login'
+login.login_message_category = 'danger'
 
 from . import frontend
 

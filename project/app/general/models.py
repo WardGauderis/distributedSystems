@@ -35,7 +35,7 @@ class Model:
 
 	def deserialize(self, map):
 		for key, value in map.items():
-			if hasattr(self, key) and key not in self.forbidden:
+			if hasattr(self, key) and key not in self.forbidden and value != '':
 				setattr(self, key, value)
 
 
@@ -310,17 +310,23 @@ class Referee(db.Model, Model):
 
 
 class User(db.Model, Model):
-	forbidden = Model.forbidden + ['team', 'is_super_admin', 'password_hash']
+	forbidden = Model.forbidden + ['team', 'is_admin', 'is_super_admin', 'password_hash']
 	hidden = Model.hidden + ['team', 'password_hash']
 	id = db.Column(db.Integer(), primary_key=True)
 	username = db.Column(db.String(64), nullable=False, unique=True)
 	password_hash = db.Column(db.String(128), nullable=False)
 	email = db.Column(db.String(128), nullable=False)
 	team_id = db.Column(db.Integer(), db.ForeignKey('team.id', ondelete='set null'))
-	is_admin = db.Column(db.Boolean(), nullable=False)
-	is_super_admin = db.Column(db.Boolean(), nullable=False)
+	is_admin = db.Column(db.Boolean(),  nullable=False, default=False)
+	is_super_admin = db.Column(db.Boolean(), nullable=False, default=False)
 
 	team = db.relationship('Team')
+
+	def serialize(self):
+		map = Model.serialize(self)
+		if self.team:
+			map['team_name'] = self.team.name()
+		return map
 
 	def deserialize(self, map: dict):
 		Model.deserialize(self, map)

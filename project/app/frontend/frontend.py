@@ -93,7 +93,11 @@ class User(object):
 
 @login.user_loader
 def load_user(token):
-	return User(token)
+	try:
+		user = User(token)
+	except:
+		user = None
+	return user
 
 
 @bp.route('/login', methods=['GET', 'POST'])
@@ -208,12 +212,47 @@ def update(type, title, form, id):
 		r = requests.put(f'http://nginx/api/crud/{type}/{id}', json=form.to_json(),
 						 headers={'Authorization': f'Bearer {current_user.token}'})
 		if r.ok:
+
+			if type == 'users' and current_user.is_super_admin:
+				if form.is_admin.data:
+					requests.post(f'http://nginx/api/crud/admins/{id}',
+								  headers={'Authorization': f'Bearer {current_user.token}'})
+				else:
+					requests.delete(f'http://nginx/api/crud/admins/{id}',
+									headers={'Authorization': f'Bearer {current_user.token}'})
+
 			return redirect(url_for(f'frontend.{type}_admin'))
 		flash(r.json()['description'], 'danger')
 		return render_template('form.html', title=title, form=form, divisions=divisions)
 
-	json = requests.get(f'http://nginx/api/crud/{type}/{id}').json()
+	json = requests.get(f'http://nginx/api/crud/{type}/{id}',
+						headers={'Authorization': f'Bearer {current_user.token}'}).json()
 	form.from_json(json)
+	return render_template('form.html', title=title, form=form, divisions=divisions)
+
+
+def create(type, title, form):
+	if current_user.is_authenticated and not (current_user.is_admin or current_user.is_super_admin):
+		return redirect(url_for('frontend.index'))  # TODO flash?
+
+	form.update.label.text = 'Create'
+	form.delete.widget = HiddenInput()
+
+	divisions = requests.get(f'http://nginx/api/crud/divisions').json()
+
+	if form.validate_on_submit():
+		r = requests.post(f'http://nginx/api/crud/{type}', json=form.to_json(),
+						  headers={'Authorization': f'Bearer {current_user.token}'})
+		if r.ok:
+			if type == 'users' and current_user.is_super_admin:
+				if form.is_admin.data:
+					requests.post(f'http://nginx/api/crud/admins/{r.json()["id"]}',
+								  headers={'Authorization': f'Bearer {current_user.token}'})
+
+			return redirect(url_for(f'frontend.{type}_admin'))
+		flash(r.json()['description'], 'danger')
+		return render_template('form.html', title=title, form=form, divisions=divisions)
+
 	return render_template('form.html', title=title, form=form, divisions=divisions)
 
 
@@ -221,6 +260,12 @@ def update(type, title, form, id):
 @login_required
 def club_admin(id):
 	return update('clubs', 'Club', ClubForm(), id)
+
+
+@bp.route('/clubs/add', methods=['GET', 'POST'])
+@login_required
+def club_create_admin():
+	return create('clubs', 'Club', ClubForm())
 
 
 @bp.route('/teams/edit/<int:id>', methods=['GET', 'POST'])
@@ -232,10 +277,25 @@ def team_admin(id):
 	return update('teams', 'Team', form, id)
 
 
+@bp.route('/teams/add', methods=['GET', 'POST'])
+@login_required
+def team_create_admin():
+	form = TeamForm()
+	clubs = requests.get(f'http://nginx/api/crud/clubs').json()
+	form.stam_number.choices = [(club['stam_number'], club['name']) for club in clubs]
+	return create('teams', 'Team', form)
+
+
 @bp.route('/divisions/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
 def division_admin(id):
 	return update('divisions', 'Division', DivisionForm(), id)
+
+
+@bp.route('/divisions/add', methods=['GET', 'POST'])
+@login_required
+def division_create_admin():
+	return create('divisions', 'Division', DivisionForm())
 
 
 @bp.route('/matches/edit/<int:id>', methods=['GET', 'POST'])
@@ -248,9 +308,60 @@ def match_admin(id):
 	divisions = requests.get(f'http://nginx/api/crud/divisions').json()
 	form.home_team_id.choices = [(team['id'], team['name']) for team in teams]
 	form.away_team_id.choices = [(team['id'], team['name']) for team in teams]
-	form.referee_id.choices = [
-		(referee['id'], referee['first_name'] + ' ' + referee['last_name'] + ' ' + referee['date_of_birth']) for referee
-		in
-		referees]
+	form.referee_id.choices = [('', '---')] + [
+		(referee['id'], referee['first_name'] + ' ' + referee['last_name'] + ' (' + referee['date_of_birth'] + ')') for
+		referee in referees]
 	form.division_id.choices = [(division['id'], division['name']) for division in divisions]
 	return update('matches', 'Match', form, id)
+
+
+@bp.route('/matches/add', methods=['GET', 'POST'])
+@login_required
+def match_create_admin():
+	form = MatchForm()
+	teams = requests.get(f'http://nginx/api/crud/teams').json()
+	referees = requests.get(f'http://nginx/api/crud/referees',
+							headers={'Authorization': f'Bearer {current_user.token}'}).json()
+	divisions = requests.get(f'http://nginx/api/crud/divisions').json()
+	form.home_team_id.choices = [(team['id'], team['name']) for team in teams]
+	form.away_team_id.choices = [(team['id'], team['name']) for team in teams]
+	form.referee_id.choices = [('', '---')] + [
+		(referee['id'], referee['first_name'] + ' ' + referee['last_name'] + ' (' + referee['date_of_birth'] + ')') for
+		referee in referees]
+	form.division_id.choices = [(division['id'], division['name']) for division in divisions]
+	return create('matches', 'Match', form)
+
+
+@bp.route('/referees/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def referee_admin(id):
+	return update('referees', 'Referee', RefereeForm(), id)
+
+
+@bp.route('/referees/add', methods=['GET', 'POST'])
+@login_required
+def referee_create_admin():
+	return create('referees', 'Referee', RefereeForm())
+
+
+@bp.route('/users/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def user_admin(id):
+	form = UserForm()
+	teams = requests.get(f'http://nginx/api/crud/teams').json()
+	form.team_id.choices = [('', '---')] + [(team['id'], team['name']) for team in teams]
+	if not current_user.is_super_admin:
+		form.is_admin.render_kw = {'disabled': True}
+	return update('users', 'User', form, id)
+
+
+@bp.route('/users/add', methods=['GET', 'POST'])
+@login_required
+def user_create_admin():
+	form = UserForm()
+	form.password.validators = [DataRequired()]
+	teams = requests.get(f'http://nginx/api/crud/teams').json()
+	form.team_id.choices = [('', '---')] + [(team['id'], team['name']) for team in teams]
+	if not current_user.is_super_admin:
+		form.is_admin.render_kw = {'disabled': True}
+	return create('users', 'User', form)

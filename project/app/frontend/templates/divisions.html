@@ -7,7 +7,14 @@
 {% block content %}
     <div class="section">
         <div class="container">
-            <h1 class="title has-text-primary">Divisions</h1>
+            <div class="level">
+
+                <h1 class="title level-left has-text-primary mb-0">Divisions</h1>
+
+                <a class="button is-success level-right" href="{{ url_for('frontend.division_create_admin') }}">
+                    Create
+                </a>
+            </div>
             <hr>
             <table class="table is-hoverable is-fullwidth">
                 <thead>

@@ -7,7 +7,14 @@
 {% block content %}
     <div class="section">
         <div class="container">
-            <h1 class="title has-text-primary">Referees</h1>
+            <div class="level">
+
+                <h1 class="title level-left has-text-primary mb-0">Referees</h1>
+
+                <a class="button is-success level-right" href="{{ url_for('frontend.referee_create_admin') }}">
+                    Create
+                </a>
+            </div>
             <hr>
             <table class="table is-hoverable is-fullwidth">
                 <thead>
@@ -39,7 +46,9 @@
                             {{ referee.id }}
                         </td>
                         <td>
-                            {{ referee.first_name }} {{ referee.last_name }}
+                            <a href="{{ url_for('frontend.referee_admin', id=referee.id) }}">
+                                {{ referee.first_name }} {{ referee.last_name }}
+                            </a>
                         </td>
                         <td>
                             {{ referee.date_of_birth }}

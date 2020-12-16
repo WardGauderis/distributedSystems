@@ -7,7 +7,14 @@
 {% block content %}
     <div class="section">
         <div class="container">
-            <h1 class="title has-text-primary">Users</h1>
+            <div class="level">
+
+                <h1 class="title level-left has-text-primary mb-0">Users</h1>
+
+                <a class="button is-success level-right" href="{{ url_for('frontend.user_create_admin') }}">
+                    Create
+                </a>
+            </div>
             <hr>
             <table class="table is-hoverable is-fullwidth">
                 <thead>
@@ -17,6 +24,9 @@
                     </th>
                     <th>
                         Username
+                    </th>
+                    <th>
+                        Team
                     </th>
                     <th>
                         Email
@@ -36,9 +46,12 @@
                             {{ user.id }}
                         </td>
                         <td>
-                            <a>
+                            <a href="{{ url_for('frontend.user_admin', id=user.id) }}">
                                 {{ user.username }}
                             </a>
+                        </td>
+                        <td>
+                            {{ user.team_name }}
                         </td>
                         <td>
                             {{ user.email }}

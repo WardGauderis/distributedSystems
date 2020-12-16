@@ -56,7 +56,6 @@ def authorize():
 		else:
 			abort(403)
 	except:
-		raise
 		pass
 	abort(401)
 

@@ -13,6 +13,9 @@
 
                 <div class="field is-grouped level-right">
                     <form>
+                        <a class="button is-success" href="{{ url_for('frontend.match_create_admin') }}">
+                            Create
+                        </a>
                         <div class="select control">
                             <label>
                                 <select name='season' onchange="this.form.submit()">

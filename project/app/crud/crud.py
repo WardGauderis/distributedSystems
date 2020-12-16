@@ -203,7 +203,7 @@ def match(id):
 @bp.route('/referees', methods=['GET', 'POST'])
 def referees():
 	if request.method == 'GET':
-		referees = [referee.serialize() for referee in Referee.query.all()]
+		referees = [referee.serialize() for referee in Referee.query.order_by(Referee.first_name, Referee.last_name).all()]
 		return jsonify(referees)
 	elif request.method == 'POST':
 		referee = Referee()
@@ -240,7 +240,7 @@ def referee(id):
 @bp.route('/users', methods=['GET', 'POST'])
 def users():
 	if request.method == 'GET':
-		users = [user.serialize() for user in User.query.all()]
+		users = [user.serialize() for user in User.query.order_by(User.username).all()]
 		return jsonify(users)
 	elif request.method == 'POST':
 		user = User()
@@ -250,6 +250,7 @@ def users():
 			db.session.commit()
 			return jsonify({'id': user.id})
 		except exc.StatementError as e:
+			raise
 			handle_error(e, 'user')
 
 

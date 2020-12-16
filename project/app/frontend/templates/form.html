@@ -11,42 +11,51 @@
             <hr>
             <div class="columns">
                 <form method="post" class="column is-one-third">
-                    {% for field in form %}
-                        <div class="field">
-                            {% if field.type != 'SubmitField' %}
-                                <label class="label">{{ field.label }}</label>
-                                {% if field.type == 'SelectField' %}
-                                    <div class="control">
-                                        <div class="select">
+                    <div>
+                        {% for field in form %}
+                            <div class="field">
+                                {% if field.type != 'SubmitField' %}
+                                    <label class="label">{{ field.label }}</label>
+                                    {% if field.type == 'SelectField' %}
+                                        <div class="control">
+                                            <div class="select is-fullwidth">
+                                                {{ field() }}
+                                            </div>
+                                        </div>
+                                    {% elif field.type == 'TelField' %}
+                                        <div class="control">
+                                            {{ field(class_='input', pattern='[0-9]{8}') }}
+                                        </div>
+                                    {% elif field.type == 'BooleanField' %}
+                                        <div class="control">
                                             {{ field() }}
                                         </div>
-                                    </div>
-                                {% else %}
-                                    <div class="control">
-                                        {{ field(class_='input') }}     {# TODO numbers etc #}
-                                    </div>
+                                    {% else %}
+                                        <div class="control">
+                                            {{ field(class_='input') }}
+                                        </div>
+                                    {% endif %}
+                                    {% for error in field.errors %}
+                                        <p class="help is-danger">{{ error }}</p>
+                                    {% endfor %}
                                 {% endif %}
-                                {% for error in field.errors %}
-                                    <p class="help is-danger">{{ error }}</p>
-                                {% endfor %}
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                    <div class="field is-grouped">
-                        {% for field in form %}
-                            {% if field.type == 'SubmitField' %}
-                                {% if field.name == 'delete' %}
-                                    <div class="control">
-                                        {{ field(class_='button is-danger') }}
-                                    </div>
-                                {% else %}
-                                    <div class="control">
-                                        {{ field(class_='button is-success') }}
-                                    </div>
-                                {% endif %}
-                            {% endif %}
+                            </div>
                         {% endfor %}
-                    </div>
+                        <div class="field is-grouped">
+                            {% for field in form %}
+                                {% if field.type == 'SubmitField' %}
+                                    {% if field.name == 'delete' %}
+                                        <div class="control">
+                                            {{ field(class_='button is-danger') }}
+                                        </div>
+                                    {% else %}
+                                        <div class="control">
+                                            {{ field(class_='button is-success') }}
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
                 </form>
             </div>
         </div>
