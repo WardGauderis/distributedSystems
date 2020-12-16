@@ -191,9 +191,9 @@ def match(id):
 		try:
 			json = request.get_json(force=True) or {}
 			if 'goals_home_team' in json:
-				match.goals_home_team = json['goals_home_team']
+				match.goals_home_team = json.get('goals_home_team')
 			if 'goals_away_team' in json:
-				match.goals_home_team = json['goals_away_team']
+				match.goals_home_team = json.get('goals_away_team')
 			db.session.commit()
 			return ''
 		except exc.StatementError as e:

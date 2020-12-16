@@ -326,6 +326,7 @@ class User(db.Model, Model):
 		map = Model.serialize(self)
 		if self.team:
 			map['team_name'] = self.team.name()
+			map['stam_number'] = self.team.stam_number
 		return map
 
 	def deserialize(self, map: dict):

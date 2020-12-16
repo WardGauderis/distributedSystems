@@ -48,8 +48,8 @@ def authorize():
 				allowed = True
 		elif uri.startswith('/api/crud/matches/') and method == 'PATCH':  # TODO check
 			allowed = int(requests.get('http://crud:5000' + uri[9:]).json()['home_team_id']) == user.team_id
-		elif uri.startswith('/api/crud/clubs/') and method == 'PUT':
-			allowed = int(requests.get('http://crud:5000' + uri[9:]).json()['stam_number']) == user.team_id
+		elif user.team is not None and uri == f'/api/crud/clubs/{user.team.club.stam_number}' and method == 'PUT':
+			allowed = True
 
 		if allowed:
 			return ''

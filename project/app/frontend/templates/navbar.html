@@ -28,7 +28,7 @@
                 </div>
             </div>
 
-            {% if current_user.has_team %}
+            {% if current_user.stam_number %}
                 <div class="navbar-end">
                 <div class="navbar-item has-dropdown is-hoverable">
                     <a class="navbar-link is-arrowless">
@@ -38,7 +38,7 @@
                         <a class="navbar-item">
                             Scores
                         </a>
-                        <a class="navbar-item">
+                        <a class="navbar-item" href="{{ url_for('frontend.club_admin', id=current_user.stam_number) }}">
                             Club
                         </a>
                     </div>

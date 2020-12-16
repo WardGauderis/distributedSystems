@@ -73,7 +73,7 @@ class User(object):
 							headers={'Authorization': f'Bearer {self.token}'}).json()
 		self.is_admin = user['is_admin']
 		self.is_super_admin = user['is_super_admin']
-		self.has_team = 'team_id' in user
+		self.stam_number = user.get('stam_number')
 
 	@property
 	def is_active(self):
@@ -132,7 +132,8 @@ def logout():
 @bp.route('/clubs', methods=['GET'])
 @login_required
 def clubs_admin():
-	if current_user.is_authenticated and not (current_user.is_admin or current_user.is_super_admin):
+	if not (current_user.is_admin or current_user.is_super_admin):
+		flash('Not authorized to access this page.', 'danger')
 		return redirect(url_for('frontend.index'))
 	divisions = requests.get(f'http://nginx/api/crud/divisions').json()
 	clubs = requests.get(f'http://nginx/api/crud/clubs').json()
@@ -142,8 +143,9 @@ def clubs_admin():
 @bp.route('/teams', methods=['GET'])
 @login_required
 def teams_admin():
-	if current_user.is_authenticated and not (current_user.is_admin or current_user.is_super_admin):
-		return redirect(url_for('frontend.index'))  # TODO flash
+	if not (current_user.is_admin or current_user.is_super_admin):
+		flash('Not authorized to access this page.', 'danger')
+		return redirect(url_for('frontend.index'))
 	divisions = requests.get(f'http://nginx/api/crud/divisions').json()
 	teams = requests.get(f'http://nginx/api/crud/teams').json()
 	return render_template('teams.html', divisions=divisions, teams=teams)
@@ -152,7 +154,8 @@ def teams_admin():
 @bp.route('/divisions', methods=['GET'])
 @login_required
 def divisions_admin():
-	if current_user.is_authenticated and not (current_user.is_admin or current_user.is_super_admin):
+	if not (current_user.is_admin or current_user.is_super_admin):
+		flash('Not authorized to access this page.', 'danger')
 		return redirect(url_for('frontend.index'))
 	divisions = requests.get(f'http://nginx/api/crud/divisions').json()
 	return render_template('divisions.html', divisions=divisions)
@@ -161,7 +164,8 @@ def divisions_admin():
 @bp.route('/matches', methods=['GET'])
 @login_required
 def matches_admin():
-	if current_user.is_authenticated and not (current_user.is_admin or current_user.is_super_admin):
+	if not (current_user.is_admin or current_user.is_super_admin):
+		flash('Not authorized to access this page.', 'danger')
 		return redirect(url_for('frontend.index'))
 	divisions = requests.get(f'http://nginx/api/crud/divisions').json()
 	queries = {'division_id': int(request.args.get('division_id', default=0)),
@@ -175,7 +179,8 @@ def matches_admin():
 @bp.route('/referees', methods=['GET'])
 @login_required
 def referees_admin():
-	if current_user.is_authenticated and not (current_user.is_admin or current_user.is_super_admin):
+	if not (current_user.is_admin or current_user.is_super_admin):
+		flash('Not authorized to access this page.', 'danger')
 		return redirect(url_for('frontend.index'))
 	divisions = requests.get(f'http://nginx/api/crud/divisions').json()
 	referees = requests.get(f'http://nginx/api/crud/referees',
@@ -186,7 +191,8 @@ def referees_admin():
 @bp.route('/users', methods=['GET'])
 @login_required
 def users_admin():
-	if current_user.is_authenticated and not (current_user.is_admin or current_user.is_super_admin):
+	if not (current_user.is_admin or current_user.is_super_admin):
+		flash('Not authorized to access this page.', 'danger')
 		return redirect(url_for('frontend.index'))
 	divisions = requests.get(f'http://nginx/api/crud/divisions').json()
 	users = requests.get(f'http://nginx/api/crud/users',
@@ -197,13 +203,14 @@ def users_admin():
 ########################################################################################################################
 
 
-def update(type, title, form, id):
-	if current_user.is_authenticated and not (current_user.is_admin or current_user.is_super_admin):
-		return redirect(url_for('frontend.index'))  # TODO flash?
+def update(type, title, form, id, club_and_not_admin=False):
+	if not club_and_not_admin and not (current_user.is_admin or current_user.is_super_admin):
+		flash('Not authorized to access this page.', 'danger')
+		return redirect(url_for('frontend.index'))
 
 	divisions = requests.get(f'http://nginx/api/crud/divisions').json()
 
-	if 'delete' in request.form:
+	if 'delete' in request.form and not club_and_not_admin:
 		r = requests.delete(f'http://nginx/api/crud/{type}/{id}', json=form.to_json(),
 							headers={'Authorization': f'Bearer {current_user.token}'})
 		return redirect(url_for(f'frontend.{type}_admin'))
@@ -220,7 +227,8 @@ def update(type, title, form, id):
 				else:
 					requests.delete(f'http://nginx/api/crud/admins/{id}',
 									headers={'Authorization': f'Bearer {current_user.token}'})
-
+			if club_and_not_admin:
+				return redirect(url_for(f'frontend.index'))
 			return redirect(url_for(f'frontend.{type}_admin'))
 		flash(r.json()['description'], 'danger')
 		return render_template('form.html', title=title, form=form, divisions=divisions)
@@ -232,8 +240,9 @@ def update(type, title, form, id):
 
 
 def create(type, title, form):
-	if current_user.is_authenticated and not (current_user.is_admin or current_user.is_super_admin):
-		return redirect(url_for('frontend.index'))  # TODO flash?
+	if not (current_user.is_admin or current_user.is_super_admin):
+		flash('Not authorized to access this page.', 'danger')
+		return redirect(url_for('frontend.index'))
 
 	form.update.label.text = 'Create'
 	form.delete.widget = HiddenInput()
@@ -259,7 +268,11 @@ def create(type, title, form):
 @bp.route('/clubs/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
 def club_admin(id):
-	return update('clubs', 'Club', ClubForm(), id)
+	form = ClubForm()
+	club_and_not_admin = current_user.stam_number == id and not (current_user.is_admin or current_user.is_super_admin)
+	if club_and_not_admin:
+		form.delete.widget = HiddenInput()
+	return update('clubs', 'Club', form, id, club_and_not_admin)
 
 
 @bp.route('/clubs/add', methods=['GET', 'POST'])
@@ -365,3 +378,5 @@ def user_create_admin():
 	if not current_user.is_super_admin:
 		form.is_admin.render_kw = {'disabled': True}
 	return create('users', 'User', form)
+
+########################################################################################################################
