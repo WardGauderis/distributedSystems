@@ -35,7 +35,7 @@
                         My Team
                     </a>
                     <div class="navbar-dropdown">
-                        <a class="navbar-item">
+                        <a class="navbar-item" href="{{ url_for('frontend.scores') }}">
                             Scores
                         </a>
                         <a class="navbar-item" href="{{ url_for('frontend.club_admin', id=current_user.stam_number) }}">

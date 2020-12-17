@@ -153,6 +153,8 @@ def matches():
 				matches = matches.filter(db.and_(Match.date >= a, Match.date <= b))
 			if 'division_id' in request.args and request.args['division_id'] != '0':
 				matches = matches.filter(Match.division_id == int(request.args['division_id']))
+			if 'team_id' in request.args:
+				matches = matches.filter(Match.home_team_id == int(request.args['team_id']))
 			matches = [match.serialize() for match in matches.all()]
 			return jsonify(matches)
 		except:
@@ -193,7 +195,7 @@ def match(id):
 			if 'goals_home_team' in json:
 				match.goals_home_team = json.get('goals_home_team')
 			if 'goals_away_team' in json:
-				match.goals_home_team = json.get('goals_away_team')
+				match.goals_away_team = json.get('goals_away_team')
 			db.session.commit()
 			return ''
 		except exc.StatementError as e:

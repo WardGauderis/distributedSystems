@@ -12,7 +12,7 @@
                     <a href="{{ url_for('frontend.teams', id=fixture.home_team_id) }}"
                        class="title has-text-primary">{{ fixture.home_team_name }}</a>
                 </div>
-                {% if fixture.goals_home_team %}
+                {% if fixture.goals_home_team is not none %}
                     <div class="column has-text-right">
                         <h1 class="title has-text-{% if fixture.goals_home_team < fixture.goals_away_team %}danger{% elif fixture.goals_home_team > fixture.goals_away_team %}success{% else %}info{% endif %}">{{ fixture.goals_home_team }}</h1>
                     </div>
@@ -20,14 +20,14 @@
                 <div class="column has-text-centered">
                     <h1 class="title has-text-primary">-</h1>
                 </div>
-                {% if fixture.goals_home_team %}
+                {% if fixture.goals_home_team is not none %}
                     <div class="column has-text-left">
                         <h1 class="title has-text-{% if fixture.goals_home_team < fixture.goals_away_team %}success{% elif fixture.goals_home_team > fixture.goals_away_team %}danger{% else %}info{% endif %}">{{ fixture.goals_away_team }}</h1>
                     </div>
                 {% endif %}
                 <div class="column has-text-right">
-                    <h1 href="{{ url_for('frontend.teams', id=fixture.away_team_id) }}"
-                        class="title has-text-primary">{{ fixture.away_team_name }}</h1>
+                    <a href="{{ url_for('frontend.teams', id=fixture.away_team_id) }}"
+                        class="title has-text-primary">{{ fixture.away_team_name }}</a>
                 </div>
             </div>
             <hr>

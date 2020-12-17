@@ -71,6 +71,12 @@ class MatchForm(GeneralForm):
 	delete = SubmitField('Delete')
 
 
+class ScoreForm(GeneralForm):
+	goals_home_team = IntegerField('Goals Home Team', [Optional(), NumberRange(min=0)])  # TODO check null
+	goals_away_team = IntegerField('Goals Away Team', [Optional(), NumberRange(min=0)])
+	update = SubmitField('Update')
+
+
 class RefereeForm(GeneralForm):
 	first_name = StringField('First Name', [DataRequired(), Length(max=64)])
 	last_name = StringField('Last Name', [DataRequired(), Length(max=64)])

@@ -37,7 +37,7 @@
 <body>
 {% include 'navbar.html' %}
 {% for category, message in get_flashed_messages(with_categories=True) %}
-    <div class="notification is-{{ category }}">
+    <div class="notification is-{{ category }} mb-0">
         <button class="delete"></button>
         {{ message }}
     </div>

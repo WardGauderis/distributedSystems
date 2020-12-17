@@ -3,19 +3,18 @@ import requests
 from flask import render_template, request, url_for, redirect, flash
 from flask_login import login_required, logout_user, login_user, current_user
 from werkzeug.exceptions import HTTPException
-from werkzeug.http import HTTP_STATUS_CODES
 from werkzeug.urls import url_parse
 
 from . import bp, login
 from .forms import *
 
 
-# TODO check foutief, divisions voor navbar, error url
+# TODO check foutief
 
 @bp.app_errorhandler(HTTPException)
 def error_handler(error):
-	return {'code': error.code, 'description': error.description,
-			'error': HTTP_STATUS_CODES.get(error.code, 'Unknown error')}  # TODO
+	flash(f'{error.code}: {error.description}', 'danger')
+	return redirect(url_for('frontend.index'))
 
 
 @bp.route('/', methods=['GET'], defaults={'season': 0})
@@ -74,6 +73,7 @@ class User(object):
 		self.is_admin = user['is_admin']
 		self.is_super_admin = user['is_super_admin']
 		self.stam_number = user.get('stam_number')
+		self.team_id = user.get('team_id')
 
 	@property
 	def is_active(self):
@@ -203,23 +203,26 @@ def users_admin():
 ########################################################################################################################
 
 
-def update(type, title, form, id, club_and_not_admin=False):
-	if not club_and_not_admin and not (current_user.is_admin or current_user.is_super_admin):
+def update(type, title, form, id, not_admin=False):
+	if not not_admin and not (current_user.is_admin or current_user.is_super_admin):
 		flash('Not authorized to access this page.', 'danger')
 		return redirect(url_for('frontend.index'))
 
 	divisions = requests.get(f'http://nginx/api/crud/divisions').json()
 
-	if 'delete' in request.form and not club_and_not_admin:
+	if 'delete' in request.form and not not_admin:
 		r = requests.delete(f'http://nginx/api/crud/{type}/{id}', json=form.to_json(),
 							headers={'Authorization': f'Bearer {current_user.token}'})
 		return redirect(url_for(f'frontend.{type}_admin'))
 
 	if form.validate_on_submit():
-		r = requests.put(f'http://nginx/api/crud/{type}/{id}', json=form.to_json(),
-						 headers={'Authorization': f'Bearer {current_user.token}'})
+		if type == 'matches' and not_admin:
+			r = requests.patch(f'http://nginx/api/crud/{type}/{id}', json=form.to_json(),
+							   headers={'Authorization': f'Bearer {current_user.token}'})
+		else:
+			r = requests.put(f'http://nginx/api/crud/{type}/{id}', json=form.to_json(),
+							 headers={'Authorization': f'Bearer {current_user.token}'})
 		if r.ok:
-
 			if type == 'users' and current_user.is_super_admin:
 				if form.is_admin.data:
 					requests.post(f'http://nginx/api/crud/admins/{id}',
@@ -227,12 +230,13 @@ def update(type, title, form, id, club_and_not_admin=False):
 				else:
 					requests.delete(f'http://nginx/api/crud/admins/{id}',
 									headers={'Authorization': f'Bearer {current_user.token}'})
-			if club_and_not_admin:
+			if not_admin:
+				if type == 'matches':
+					return redirect(url_for(f'frontend.scores'))
 				return redirect(url_for(f'frontend.index'))
 			return redirect(url_for(f'frontend.{type}_admin'))
 		flash(r.json()['description'], 'danger')
 		return render_template('form.html', title=title, form=form, divisions=divisions)
-
 	json = requests.get(f'http://nginx/api/crud/{type}/{id}',
 						headers={'Authorization': f'Bearer {current_user.token}'}).json()
 	form.from_json(json)
@@ -314,18 +318,26 @@ def division_create_admin():
 @bp.route('/matches/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
 def match_admin(id):
-	form = MatchForm()
-	teams = requests.get(f'http://nginx/api/crud/teams').json()
-	referees = requests.get(f'http://nginx/api/crud/referees',
-							headers={'Authorization': f'Bearer {current_user.token}'}).json()
-	divisions = requests.get(f'http://nginx/api/crud/divisions').json()
-	form.home_team_id.choices = [(team['id'], team['name']) for team in teams]
-	form.away_team_id.choices = [(team['id'], team['name']) for team in teams]
-	form.referee_id.choices = [('', '---')] + [
-		(referee['id'], referee['first_name'] + ' ' + referee['last_name'] + ' (' + referee['date_of_birth'] + ')') for
-		referee in referees]
-	form.division_id.choices = [(division['id'], division['name']) for division in divisions]
-	return update('matches', 'Match', form, id)
+	match = requests.get(f'http://nginx/api/crud/matches/{id}').json()
+	team_and_not_admin = current_user.team_id == match['home_team_id'] and not (
+			current_user.is_admin or current_user.is_super_admin)
+
+	if team_and_not_admin:
+		form = ScoreForm()
+	else:
+		form = MatchForm()
+		teams = requests.get(f'http://nginx/api/crud/teams').json()
+		referees = requests.get(f'http://nginx/api/crud/referees',
+								headers={'Authorization': f'Bearer {current_user.token}'}).json()
+		divisions = requests.get(f'http://nginx/api/crud/divisions').json()
+		form.home_team_id.choices = [(team['id'], team['name']) for team in teams]
+		form.away_team_id.choices = [(team['id'], team['name']) for team in teams]
+		form.referee_id.choices = [('', '---')] + [
+			(referee['id'], referee['first_name'] + ' ' + referee['last_name'] + ' (' + referee['date_of_birth'] + ')')
+			for
+			referee in referees]
+		form.division_id.choices = [(division['id'], division['name']) for division in divisions]
+	return update('matches', 'Match', form, id, team_and_not_admin)
 
 
 @bp.route('/matches/add', methods=['GET', 'POST'])
@@ -379,4 +391,20 @@ def user_create_admin():
 		form.is_admin.render_kw = {'disabled': True}
 	return create('users', 'User', form)
 
+
 ########################################################################################################################
+
+@bp.route('/scores', methods=['GET'])
+@login_required
+def scores():
+	if current_user.team_id is None:
+		flash('Not authorized to access this page.', 'danger')
+		return redirect(url_for('frontend.index'))
+	divisions = requests.get(f'http://nginx/api/crud/divisions').json()
+	queries = {'division_id': int(request.args.get('division_id', default=0)),
+			   'season': int(request.args.get('season', default=0)),
+			   'team_id': current_user.team_id}
+	matches = requests.get(f'http://nginx/api/crud/matches', queries).json()
+	seasons = requests.get(f'http://nginx/api/crud/seasons').json()
+	return render_template('matches.html', divisions=divisions, matches=matches, season=int(queries['season']),
+						   division=queries['division_id'], seasons=seasons)
