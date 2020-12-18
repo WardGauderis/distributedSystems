@@ -219,7 +219,8 @@ def update(type, title, form, id, not_admin=False):
 	if 'delete' in request.form and not not_admin:
 		r = requests.delete(f'http://nginx/api/crud/{type}/{id}', json=form.to_json(),
 							headers={'Authorization': f'Bearer {current_user.token}'})
-		r.raise_for_status()
+		if not r.ok:
+			flash(r.json()['description'], 'danger')
 		return redirect(url_for(f'frontend.{type}_admin'))
 
 	if form.validate_on_submit():

@@ -263,6 +263,8 @@ def user(id):
 	if request.method == 'GET':
 		return jsonify(user.serialize())
 	elif request.method == 'DELETE':
+		if user.is_super_admin:
+			abort(409, 'Cannot delete Super User')
 		db.session.delete(user)
 		db.session.commit()
 		return ''

@@ -15,6 +15,11 @@
 {% endblock %}
 
 {% block content %}
+    <style>
+        tr {
+            cursor: pointer;
+        }
+    </style>
     <section class="section">
         <div class="container">
             <div class="level">
@@ -65,10 +70,9 @@
                 </tfoot>
                 <tbody>
                 {% for team in table %}
-                    <tr>
+                    <tr onclick="window.location='{{ url_for('frontend.teams', id=team.team.id) }}'">
                         <th>{{ team.pos }}</th>
-                        <td><a href="{{ url_for('frontend.teams', id=team.team.id) }}">{{ team.team.name }}</a>
-                        </td>
+                        <td>{{ team.team.name }}</td>
                         <td>{{ team.played }}</td>
                         <td>{{ team.won }}</td>
                         <td>{{ team.drawn }}</td>
