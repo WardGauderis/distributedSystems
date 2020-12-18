@@ -25,7 +25,7 @@ services:
     build:
       context: app/deployment
     environment:
-      - FLASK_ENV=development
+#      - FLASK_ENV=development
       - DATABASE_URI=postgres://postgres:postgres@database
     volumes:
       - './app/auth:/usr/src/app/service'
@@ -39,7 +39,7 @@ services:
     build:
       context: app/deployment
     environment:
-      - FLASK_ENV=development
+#      - FLASK_ENV=development
       - DATABASE_URI=postgres://postgres:postgres@database
     volumes:
       - './app/crud:/usr/src/app/service'
@@ -53,7 +53,7 @@ services:
     build:
       context: app/deployment
     environment:
-      - FLASK_ENV=development
+#      - FLASK_ENV=development
       - DATABASE_URI=postgres://postgres:postgres@database
     volumes:
       - './app/stats:/usr/src/app/service'
@@ -66,8 +66,8 @@ services:
     image: flask
     build:
       context: app/deployment
-    environment:
-      - FLASK_ENV=development
+#    environment:
+#      - FLASK_ENV=development
     volumes:
       - './app/frontend:/usr/src/app/service'
     expose:
