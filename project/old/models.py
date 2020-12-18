@@ -34,11 +34,11 @@ class Match(db.Model):
 	id = db.Column(db.Integer(), primary_key=True)
 	division_id = db.Column(db.Integer(), db.ForeignKey('division.id', ondelete='cascade'), nullable=False)
 	matchweek = db.Column(db.Integer(), nullable=False)
-	date = db.Column(db.Date(), nullable=False)  # TODO match matchweek
+	date = db.Column(db.Date(), nullable=False)
 	time = db.Column(db.Time(), nullable=False)
 	home_team_id = db.Column(db.Integer(), db.ForeignKey('team.id', ondelete='cascade'), nullable=False)
 	away_team_id = db.Column(db.Integer(), db.ForeignKey('team.id', ondelete='cascade'), nullable=False)
-	goals_home_team = db.Column(db.Integer())  # TODO null??
+	goals_home_team = db.Column(db.Integer())
 	goals_away_team = db.Column(db.Integer())
 	status = db.Column(db.Enum('Postponed', 'Canceled', 'Forfait', name='match_status'))
 	referee_id = db.Column(db.Integer(), db.ForeignKey('referee.id'))
@@ -52,7 +52,7 @@ class Referee(db.Model):
 	address = db.Column(db.String(128), nullable=False)
 	zip_code = db.Column(db.Integer(), nullable=False)
 	city = db.Column(db.String(64), nullable=False)
-	phone_number = db.Column(db.String(64), nullable=False)  # TODO check (niet in db)
+	phone_number = db.Column(db.String(64), nullable=False)
 	email = db.Column(db.String(128), nullable=False)
 	date_of_birth = db.Column(db.Date(), nullable=False)
 

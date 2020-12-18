@@ -266,7 +266,7 @@ class Match(db.Model, Model):
 			f'select count(*) from match '
 			f'where (away_team_id = {self.away_team_id} and home_team_id = {self.home_team_id} '
 			f'or away_team_id = {self.home_team_id} and home_team_id = {self.away_team_id}) '
-			f'and date <= to_date(\'{b}\', \'YYYY-MM-DD\');').scalar()
+			f'and date <= to_date(\'{b}\', \'YYYY-MM-DD\') and goals_home_team is not null;').scalar()
 		home_team_wins = db.engine.execute(
 			f'select count(*) from match '
 			f'where (away_team_id = {self.away_team_id} and home_team_id = {self.home_team_id} '

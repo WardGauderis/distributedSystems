@@ -61,7 +61,7 @@ class MatchForm(GeneralForm):
 	time = TimeField('Kickoff Time', [DataRequired()], format='%H:%M:%S', render_kw={'step': '1'})
 	home_team_id = SelectField('Home Team', [DataRequired()])
 	away_team_id = SelectField('Away Team', [DataRequired()])
-	goals_home_team = IntegerField('Goals Home Team', [Optional(), NumberRange(min=0)])  # TODO check null
+	goals_home_team = IntegerField('Goals Home Team', [Optional(), NumberRange(min=0)])
 	goals_away_team = IntegerField('Goals Away Team', [Optional(), NumberRange(min=0)])
 	status = SelectField('Status',
 						 choices=[('', '---'), ('Postponed', 'Postponed'), ('Canceled', 'Canceled'),
@@ -72,7 +72,7 @@ class MatchForm(GeneralForm):
 
 
 class ScoreForm(GeneralForm):
-	goals_home_team = IntegerField('Goals Home Team', [Optional(), NumberRange(min=0)])  # TODO check null
+	goals_home_team = IntegerField('Goals Home Team', [Optional(), NumberRange(min=0)])
 	goals_away_team = IntegerField('Goals Away Team', [Optional(), NumberRange(min=0)])
 	update = SubmitField('Update')
 

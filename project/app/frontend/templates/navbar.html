@@ -11,12 +11,12 @@
             </a>
         </div>
 
-        <div class="navbar-menu">   {# TODO a #}
+        <div class="navbar-menu">
             <div class="navbar-start">
                 <div class="navbar-item has-dropdown is-hoverable">
-                    <a class="navbar-link is-arrowless">
+                    <p class="navbar-link is-arrowless">
                         Divisions
-                    </a>
+                    </p>
                     <div class="navbar-dropdown">
                         {% for division in divisions %}
                             <a class="navbar-item"
@@ -31,7 +31,7 @@
             {% if current_user.stam_number %}
                 <div class="navbar-end">
                 <div class="navbar-item has-dropdown is-hoverable">
-                    <a class="navbar-link is-arrowless">
+                    <a class="navbar-link is-arrowless" href="{{ url_for('frontend.teams', id=current_user.team_id) }}">
                         My Team
                     </a>
                     <div class="navbar-dropdown">
@@ -46,9 +46,9 @@
             {% endif %}
             {% if current_user.is_admin or current_user.is_super_admin %}
                 <div class="navbar-item has-dropdown is-hoverable">
-                    <a class="navbar-link is-arrowless">
+                    <p class="navbar-link is-arrowless">
                         Admin
-                    </a>
+                    </p>
                     <div class="navbar-dropdown">
                         <a class="navbar-item" href="{{ url_for('frontend.clubs_admin') }}">
                             Clubs
