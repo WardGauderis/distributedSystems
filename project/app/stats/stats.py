@@ -96,7 +96,6 @@ def top(season):
 			})
 		return jsonify(result)
 	except:
-		raise
 		abort(400)
 
 

@@ -28,6 +28,7 @@ def authorize():
 	try:
 		method = request.headers['X-Original-Method']
 		uri = request.headers['X-Original-Uri']
+
 		if method == 'GET' and not (uri.startswith('/api/crud/users') or uri.startswith('/api/crud/referees')):
 			return ''
 

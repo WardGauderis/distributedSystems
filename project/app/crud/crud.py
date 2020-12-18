@@ -252,7 +252,6 @@ def users():
 			db.session.commit()
 			return jsonify({'id': user.id})
 		except exc.StatementError as e:
-			raise
 			handle_error(e, 'user')
 
 

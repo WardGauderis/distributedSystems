@@ -64,7 +64,6 @@ def fixtures(id):
 		fixture = requests.get(f'http://nginx/api/stats/fixtures/{id}').json()
 		return render_template('fixture.html', divisions=divisions, fixture=fixture)
 	except:
-		raise
 		abort(404)
 
 
