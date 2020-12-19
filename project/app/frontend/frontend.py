@@ -230,7 +230,6 @@ def update(type, title, form, id, not_admin=False):
 		else:
 			r = requests.put(f'http://nginx/api/crud/{type}/{id}', json=form.to_json(),
 							 headers={'Authorization': f'Bearer {current_user.token}'})
-		r.raise_for_status()
 		if r.ok:
 			if type == 'users' and current_user.is_super_admin:
 				if form.is_admin.data:
